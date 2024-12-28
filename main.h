@@ -23,4 +23,13 @@ bool menu(WINDOW **g_win, int flag);
 int game(WINDOW **g_win);
 void frog(int pipefd[]);
 
+struct pos{
+    int x;
+    int y;
+}typedef pos;
+
+struct msg{
+    pos position;
+}typedef msg;
+
 #endif
