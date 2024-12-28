@@ -4,16 +4,10 @@
 int main() 
 {
   int flag = 2;
-  int pipefd[2];
   WINDOW *g_win;
   WINDOW *ui_win;
   WINDOW *p_win;
 
-  if (pipe(pipefd) == -1) {
-    perror("Pipe call");
-    exit(1);
-  }
-  srand(time(NULL));
   init_screen(&g_win, &ui_win, &p_win);
 
   while (true) {
@@ -21,12 +15,9 @@ int main()
       flag = menu(&g_win, flag);
     if (flag == 0)
       break;
-
-    // gioco 
-    flag = game(&g_win);
+    if (flag == 1)
+      flag = game(&g_win);
   }
-
-  sleep(100);
 
   end_screen(&g_win, &ui_win, &p_win);
   return 0;
@@ -113,24 +104,40 @@ bool menu(WINDOW **g_win, int flag)
 int game(WINDOW **g_win)
 {
   int n_processes = 1;
+  int flag = 1;
   pid_t pids[n_processes];
+  int pipefd[2];
 
-  for (int i = 0; i < n_processes; i++) {
-    pids[i] = fork();
-    if (pids[i] < 0) {
-      perror("Fork fail");
-      exit(EXIT_FAILURE);
-    } else if (pids[i] == 0) {
-      switch (i) {
-        case 0:
-          player();
-        case 1:
-          frog();
-        case 2:
-          map();
-      }
-
-    }
+  if (pipe(pipefd) == -1) {
+    perror("Pipe call");
+    exit(1);
   }
+  srand(time(NULL));
 
+  while(true) {
+    for (int i = 0; i < n_processes; i++) {
+      pids[i] = fork();
+      if (pids[i] < 0) {
+        perror("Fork fail");
+        exit(EXIT_FAILURE);
+      } else if (pids[i] == 0) {
+        switch (i) {
+          case 0:
+            frog(pipefd);
+            break;
+          case 1:
+            break;
+          case 2:
+            break;
+        }
+      }
+    }
+    if (flag != 1)
+      break;
+  }
+  return flag;
+}
+
+void frog(int pipefd[]) {
+  
 }

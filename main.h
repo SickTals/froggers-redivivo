@@ -21,5 +21,6 @@ void init_screen(WINDOW **g_win, WINDOW **ui_win, WINDOW **p_win);
 void end_screen(WINDOW **g_win, WINDOW **ui_win, WINDOW **p_win);
 bool menu(WINDOW **g_win, int flag);
 int game(WINDOW **g_win);
+void frog(int pipefd[]);
 
 #endif
