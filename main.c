@@ -138,6 +138,22 @@ int game(WINDOW **g_win)
   return flag;
 }
 
-void frog(int pipefd[]) {
-  
+void frog(WINDOW **g_win, int pipeout, int pipein){
+  close(pipein);
+  char user_input;
+  while(true){ // Ciclo infinito chiuso dal padre
+      // Acquisizione e effettuazione del movimento
+      user_input = wgetch(g_win);
+      switch(user_input){
+          case UP_KEY: frog_cord.y--; break;
+          case DOWN_KEY: frog_cord.y++; break;
+          case LEFT_KEY: frog_cord.x -= null; break;
+          case RIGHT_KEY: frog_cord.x += null; break;
+          case SHOOT_KEY: break; // TODO: funzione della granata
+          case QUIT: frog_position.x = QUIT; break;
+      }
+      // Scrittura su pipe della posizione dell'oggetto
+      write(pipeout, &frog_position, sizeof(frog_position));
+      close(pipeout);
+  }
 }
