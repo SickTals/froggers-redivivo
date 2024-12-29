@@ -1,4 +1,5 @@
 #include "main.h"
+#include "common.h"
 #include "curses.h"
 
 int main() 
@@ -12,7 +13,7 @@ int main()
 
   while (true) {
     if (flag == 2)
-      flag = menu(&g_win, flag);
+      flag = menu(&g_win);
     if (flag == 0)
       break;
     if (flag == 1)
@@ -31,12 +32,13 @@ void init_screen(WINDOW **g_win, WINDOW **ui_win, WINDOW **p_win)
 {
   initscr();
   noecho();
-  curs_set(0);
+  curs_set(false);
   cbreak();
   *g_win = newwin(GSIZE/2, GSIZE, (LINES - GSIZE/2)/2, ((COLS - GSIZE)/2) - UISIZE/2);
   *ui_win = newwin(GSIZE/2, UISIZE, (LINES - GSIZE/2)/2, ((COLS - GSIZE)/2) + GSIZE - UISIZE/2);
   *p_win = newwin(PSIZE/2, PSIZE, (LINES - PSIZE/2)/2, (COLS - PSIZE)/2);
-  nodelay(*g_win, 0);
+  nodelay(*g_win, false);
+  keypad(*g_win, true);
   box(*g_win, ACS_VLINE, ACS_HLINE);
   box(*ui_win, ACS_VLINE, ACS_HLINE);
   box(*p_win, ACS_VLINE, ACS_HLINE);
@@ -52,57 +54,6 @@ void end_screen(WINDOW **g_win, WINDOW **ui_win, WINDOW **p_win)
   endwin();
 }
 
-/* 
- * Stampa il menu
- * Restituisce
- *  false - Esce dal gioco
- *  true - Avvia gioco
- */
-bool menu(WINDOW **g_win, int flag)
-{
-  int cursor = 0;
-  int user_input = -1;
-
-  while(flag == 2) {
-    wclear(*g_win);
-    box(*g_win, ACS_VLINE, ACS_HLINE);
-    mvwprintw(*g_win, GSIZE/8, GSIZE/2 - strlen(PLAY_MSG)/2, "%s", PLAY_MSG);
-    mvwprintw(*g_win, GSIZE/4, GSIZE/2 - strlen(OPTIONS_MSG)/2, "%s", OPTIONS_MSG);
-    mvwprintw(*g_win, GSIZE/4 + GSIZE/8, GSIZE/2 - strlen(QUIT_MSG)/2, "%s", QUIT_MSG);
-    switch (cursor) {
-      case 0:
-        mvwprintw(*g_win, GSIZE/8, GSIZE/2 - strlen(PLAY_MSG)/2 - 2, "%c",  SPRITE_CURSOR);
-        break;
-      case 1:
-        mvwprintw(*g_win, GSIZE/4, GSIZE/2 - strlen(OPTIONS_MSG)/2 - 2, "%c", SPRITE_CURSOR);
-        break;
-      case 2:
-        mvwprintw(*g_win, GSIZE/4 + GSIZE/8, GSIZE/2 - strlen(QUIT_MSG)/2 - 2, "%c", SPRITE_CURSOR);
-        break;
-    }
-    wrefresh(*g_win);
-    user_input = wgetch(*g_win);
-    switch (user_input) {
-      case 'k':
-        cursor--; break;
-      case 'j':
-        cursor++; break;
-      case '\n':
-        if (cursor == 0)
-          flag = 1;
-        else if (cursor == 2)
-          flag = 0;
-        break;
-      default:
-        break;
-    }
-    if (cursor < 0)
-      cursor = 2;
-    if (cursor > 2)
-      cursor = 0;
-  }
-  return flag;
-}
 
 int game(WINDOW **g_win)
 {
@@ -147,20 +98,20 @@ int game(WINDOW **g_win)
     printFrog(g_win, msgs[ID_FROG]);
     wrefresh(*g_win);
     
-    (void)read(pipefd[0], &msgs[0], sizeof(msgs[0]));
+    (void)read(pipefd[0], &msgs[NTASKS], sizeof(msgs[NTASKS]));
 
-    switch (msgs[0].id) {
+    switch (msgs[NTASKS].id) {
+      case ID_FROG:
+        msgs[ID_FROG] = manageFrog(msgs[NTASKS].y, msgs[NTASKS].x, msgs[ID_FROG]);
+        break;
       case ID_QUIT:
         flag = 2;
-        break;
-      case ID_FROG:
-        msgs[ID_FROG] = manageFrog(msgs[0].y, msgs[0].x, msgs[ID_FROG]);
         break;
     }
   }
   close(pipefd[0]);
   for (int i = 0; i < NTASKS; i++) {
-    if (kill(pids[0], SIGKILL) == -1) {
+    if (kill(pids[i], SIGKILL) == -1) {
       perror("kill failed");
       return 1;
       wait(NULL);
@@ -172,13 +123,13 @@ int game(WINDOW **g_win)
 
 msg manageFrog(int y, int x, msg f)
 {
-  if (y == (int)'+')
+  if (y == '+')
     f.y--;
-  else if (y == (int)'-')
+  else if (y == '-')
     f.y++;
-  if (x == (int)'-')
+  if (x == '-')
     f.x -= strlen(SPRITE_FROG);
-  else if (x == (int)'+')
+  else if (x == '+')
     f.x += strlen(SPRITE_FROG);
 
   if (f.y < 0)

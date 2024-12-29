@@ -1,5 +1,5 @@
-#ifndef FROG_HEADER
-#define FROG_HEADER
+#ifndef FROG
+#define FROG
 
 #include <ncurses.h>
 #include <unistd.h>
