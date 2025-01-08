@@ -5,12 +5,20 @@
 #include <string.h>
 #include "common.h"
 
-#define PLAY_MSG "PLAY"
-#define OPTIONS_MSG "OPTIONS"
-#define QUIT_MSG "QUIT"
+enum MenuMsg {
+  Msg_play,
+  Msg_opts,
+  Msg_quit,
+};
+
+#define MSG_TO_STRING(msg) \
+    ((msg) == Msg_play ? "PLAY"    : \
+     (msg) == Msg_opts ? "OPTIONS" : \
+     (msg) == Msg_quit ? "QUIT"    : "Unknown")
 
 gstate menu(WINDOW **g_win);
 void printMenu(WINDOW **win, int cursor);
-gstate manageMenu(WINDOW **win, int *cursor);
+gstate handleMenu(WINDOW **win, int *cursor);
+gstate handleSelection(int cursor);
 
 #endif

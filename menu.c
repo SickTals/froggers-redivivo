@@ -1,4 +1,5 @@
 #include "menu.h"
+#include "common.h"
 /* 
  * Stampa il menu
  * Restituisce
@@ -8,13 +9,13 @@
 gstate menu(WINDOW **g_win)
 {
   int cursor = 0;
-  int flag = 2;
+  gstate flag = Menu;
 
-  while(flag == 2) {
+  while(flag == Menu) {
     wclear(*g_win);
     printMenu(g_win, cursor);
     wrefresh(*g_win);
-    flag = manageMenu(g_win, &cursor);
+    flag = handleMenu(g_win, &cursor);
   }
   return flag;
 }
@@ -22,49 +23,64 @@ gstate menu(WINDOW **g_win)
 void printMenu(WINDOW **win, int cursor)
 {
   box(*win, ACS_VLINE, ACS_HLINE);
-  mvwprintw(*win, GSIZE/8, GSIZE/2 - strlen(PLAY_MSG)/2, PLAY_MSG);
-  mvwprintw(*win, GSIZE/4, GSIZE/2 - strlen(OPTIONS_MSG)/2, OPTIONS_MSG);
-  mvwprintw(*win, GSIZE/4 + GSIZE/8, GSIZE/2 - strlen(QUIT_MSG)/2, QUIT_MSG);
+  mvwprintw(*win, GSIZE/8, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
+            MSG_TO_STRING(Msg_play));
+  mvwprintw(*win, GSIZE/4, GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2,
+            MSG_TO_STRING(Msg_opts));
+  mvwprintw(*win, GSIZE/4 + GSIZE/8, GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2,
+            MSG_TO_STRING(Msg_quit));
   switch (cursor) {
-    case 0:
-      mvwaddch(*win, GSIZE/8, GSIZE/2 - strlen(PLAY_MSG)/2 - 2, SPRITE_CURSOR);
+    case Msg_play:
+      mvwaddch(*win, GSIZE/8, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2 - 2,
+               SPRITE_CURSOR);
       break;
-    case 1:
-      mvwaddch(*win, GSIZE/4, GSIZE/2 - strlen(OPTIONS_MSG)/2 - 2, SPRITE_CURSOR);
+    case Msg_opts:
+      mvwaddch(*win, GSIZE/4, GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2 - 2,
+               SPRITE_CURSOR);
       break;
-    case 2:
-      mvwaddch(*win, GSIZE/4 + GSIZE/8, GSIZE/2 - strlen(QUIT_MSG)/2 - 2, SPRITE_CURSOR);
+    case Msg_quit:
+      mvwaddch(*win, GSIZE/4 + GSIZE/8, GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2 - 2,
+               SPRITE_CURSOR);
       break;
   }
 }
 
-gstate manageMenu(WINDOW **win, int *cursor)
+gstate handleMenu(WINDOW **win, int *cursor)
 {
   char user_input = wgetch(*win);
   switch (user_input) {
-    case QUIT_KEY:
-      return 0;
+    case Key_quit:
+      return Exit;
     case (char)KEY_UP:
-    case UP_KEY:
+    case Key_up:
       *cursor -= 1;
       break;
     case (char)KEY_DOWN:
-    case DOWN_KEY:
+    case Key_down:
       *cursor += 1;
       break;
     case '\n':
     case ' ':
-      if (*cursor == 0)
-        return 1;
-      else if (*cursor == 2)
-        return 0;
-      break;
+      return handleSelection(*cursor);
   }
 
-  if (*cursor < 0)
-    *cursor = 2;
-  if (*cursor > 2)
-    *cursor = 0;
+  if (*cursor < Msg_play)
+    *cursor = Msg_quit;
+  if (*cursor > Msg_quit)
+    *cursor = Msg_play;
 
-  return 2;
+  return Menu;
+}
+
+gstate handleSelection(int cursor)
+{
+  switch(cursor) {
+    case 0:
+      return Game;
+    case 1:
+    case 2:
+      return Exit;
+    default:
+      return Exit;
+  }
 }

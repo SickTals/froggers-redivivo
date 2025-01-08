@@ -1,26 +1,26 @@
 #include "main.h"
 #include "common.h"
 #include "curses.h"
+#include "river.h"
 
 int main() 
 {
-  int flag = 2;
+  gstate flag = Menu;
   WINDOW *g_win;
   WINDOW *ui_win;
-  WINDOW *p_win;
 
-  init_screen(&g_win, &ui_win, &p_win);
+  init_screen(&g_win, &ui_win);
 
   while (true) {
-    if (flag == 2)
+    if (flag == Menu)
       flag = menu(&g_win);
-    if (flag == 0)
+    if (flag == Exit)
       break;
-    if (flag == 1)
+    if (flag == Game)
       flag = game(&g_win);
   }
 
-  end_screen(&g_win, &ui_win, &p_win);
+  end_screen(&g_win, &ui_win);
   return 0;
 }
 
@@ -28,44 +28,48 @@ int main()
  * Inizializza e imposta la schermata
  * Le finestre vengono posizionate centrate
  */
-void init_screen(WINDOW **g_win, WINDOW **ui_win, WINDOW **p_win)
+void init_screen(WINDOW **g_win, WINDOW **ui_win)
 {
   initscr();
   noecho();
   curs_set(false);
   cbreak();
-  *g_win = newwin(GSIZE/2, GSIZE, (LINES - GSIZE/2)/2, ((COLS - GSIZE)/2) - UISIZE/2);
-  *ui_win = newwin(GSIZE/2, UISIZE, (LINES - GSIZE/2)/2, ((COLS - GSIZE)/2) + GSIZE - UISIZE/2);
-  *p_win = newwin(PSIZE/2, PSIZE, (LINES - PSIZE/2)/2, (COLS - PSIZE)/2);
+  *g_win = newwin(GSIZE/2, GSIZE,
+                  (LINES - GSIZE/2)/2, ((COLS - GSIZE)/2) - UISIZE/2);
+  *ui_win = newwin(GSIZE/2, UISIZE,
+                   (LINES - GSIZE/2)/2, ((COLS - GSIZE)/2) + GSIZE - UISIZE/2);
   nodelay(*g_win, false);
   keypad(*g_win, true);
   box(*g_win, ACS_VLINE, ACS_HLINE);
   box(*ui_win, ACS_VLINE, ACS_HLINE);
-  box(*p_win, ACS_VLINE, ACS_HLINE);
   wrefresh(*g_win);
   wrefresh(*ui_win);
 }
 
-void end_screen(WINDOW **g_win, WINDOW **ui_win, WINDOW **p_win)
+void end_screen(WINDOW **g_win, WINDOW **ui_win)
 {
   delwin(*g_win);
   delwin(*ui_win);
-  delwin(*p_win);
   endwin();
 }
 
 
 int game(WINDOW **g_win)
 {
-  int flag = 1;
+  WINDOW *p_win;
+  gstate flag = Game;
   int pipefd[2];
   pid_t pids[NTASKS];
+  rvr river = generateRiver();
 
   if (pipe(pipefd) == -1) {
     perror("Pipe call");
     exit(1);
   }
   srand(time(NULL));
+
+  p_win = newwin(PSIZE/2, PSIZE, (LINES - PSIZE/2)/2, (COLS - PSIZE)/2);
+  box(p_win, ACS_VLINE, ACS_HLINE);
 
   for (int i = 0; i < NTASKS; i++) {
     pids[i] = fork();
@@ -74,38 +78,64 @@ int game(WINDOW **g_win)
       exit(EXIT_FAILURE);
     } else if (pids[i] == 0) {
       switch (i) {
-        case 0:
+        case Id_frog:
           frog(g_win, pipefd);
           exit(0);
           break;
-        //case 1:
-          //break;
-        //case 2:
-          //break;
+        case Id_croc_slow:
+          crocodile(river, Slow, pipefd);
+          exit(0);
+          break;
+        case Id_croc_normal:
+          crocodile(river, Normal, pipefd);
+          exit(0);
+          break;
+        case Id_croc_fast:
+          crocodile(river, Fast, pipefd);
+          exit(0);
+          break;
       }
     }
   }
   
   msg msgs[NTASKS + 1];
-  msgs[ID_FROG].id = ID_FROG;
-  msgs[ID_FROG].y = 2;
-  msgs[ID_FROG].x = 2;
-  while (flag == 1) {
+  msgs[Id_frog].id = Id_frog;
+  msgs[Id_frog].p.y = 2;
+  msgs[Id_frog].p.x = 2;
+  for (int i = 0; i < NLANES*4; i++) {
+    msgs[Id_croc_slow].crocs[i].y = -1;
+    msgs[Id_croc_slow].crocs[i].x = -1;
+    msgs[Id_croc_normal].crocs[i].y = -1;
+    msgs[Id_croc_normal].crocs[i].x = -1;
+    msgs[Id_croc_fast].crocs[i].y = -1;
+    msgs[Id_croc_fast].crocs[i].x = -1;
+  }
+  while (flag == Game) {
     close(pipefd[1]);
     
     wclear(*g_win);
     box(*g_win, ACS_VLINE, ACS_HLINE);
-    printFrog(g_win, msgs[ID_FROG]);
+    printFrog(g_win, msgs[Id_frog]);
+    mvwprintw(*g_win, 2, 2, "%d", msgs[Id_croc_fast].crocs[0].x);
     wrefresh(*g_win);
     
     (void)read(pipefd[0], &msgs[NTASKS], sizeof(msgs[NTASKS]));
 
     switch (msgs[NTASKS].id) {
-      case ID_FROG:
-        msgs[ID_FROG] = manageFrog(msgs[NTASKS].y, msgs[NTASKS].x, msgs[ID_FROG]);
+      case Id_frog:
+        msgs[Id_frog] = handleFrog(msgs[NTASKS].p, msgs[Id_frog]);
         break;
-      case ID_QUIT:
-        flag = 2;
+      case Id_quit:
+        flag = Menu;
+        break;
+      case Id_croc_slow:
+        msgs[Id_croc_slow] = handleCroc(msgs[NTASKS].crocs, msgs[Id_croc_slow]);
+        break;
+      case Id_croc_normal:
+        msgs[Id_croc_normal] = handleCroc(msgs[NTASKS].crocs, msgs[Id_croc_normal]);
+        break;
+      case Id_croc_fast:
+        msgs[Id_croc_fast] = handleCroc(msgs[NTASKS].crocs, msgs[Id_croc_fast]);
         break;
     }
   }
@@ -118,33 +148,7 @@ int game(WINDOW **g_win)
     }
   }
 
+  delwin(p_win);
   return flag;
 }
 
-msg manageFrog(int y, int x, msg f)
-{
-  if (y == '+')
-    f.y--;
-  else if (y == '-')
-    f.y++;
-  if (x == '-')
-    f.x -= strlen(SPRITE_FROG);
-  else if (x == '+')
-    f.x += strlen(SPRITE_FROG);
-
-  if (f.y < 0)
-    f.y++;
-  else if (f.y > GSIZE/2)
-    f.y--;
-  if (f.x < 0)
-    f.x += strlen(SPRITE_FROG);
-  else if (f.x > GSIZE)
-    f.x -= strlen(SPRITE_FROG);
-
-  return f;
-}
-
-void printFrog(WINDOW **g_win, msg f)
-{
-  mvwprintw(*g_win, f.y, f.x, SPRITE_FROG);
-}

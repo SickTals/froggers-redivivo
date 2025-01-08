@@ -9,16 +9,15 @@
 #include <time.h>
 #include <curses.h>
 #include <sys/wait.h>
-#include "frog.h"
 #include "common.h"
 #include "menu.h"
+#include "frog.h"
+#include "river.h"
 
-#define NTASKS 1
+#define NTASKS 4
 
-void init_screen(WINDOW **g_win, WINDOW **ui_win, WINDOW **p_win);
-void end_screen(WINDOW **g_win, WINDOW **ui_win, WINDOW **p_win);
+void init_screen(WINDOW **g_win, WINDOW **ui_win);
+void end_screen(WINDOW **g_win, WINDOW **ui_win);
 int game(WINDOW **g_win);
-msg manageFrog(int y, int x, msg f);
-void printFrog(WINDOW **g_win, msg f);
 
 #endif

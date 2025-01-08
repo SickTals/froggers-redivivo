@@ -8,32 +8,47 @@
 #define SPRITE_CURSOR '>'
 #define SPRITE_FROG ">M<"
 
-typedef enum GameStatus {
-  EXIT,
-  GAME,
-  MENU
-} gstate;
+#define NLANES 8
 
 enum Keys {
-  EXIT_KEY = 'Q',
-  QUIT_KEY = 'q',
-  PAUSE_KEY = 'p',
-  UP_KEY = 'w',
-  DOWN_KEY = 's',
-  LEFT_KEY = 'a',
-  RIGHT_KEY = 'd'
+  Key_exit = 'Q',
+  Key_quit = 'q',
+  Key_pause = 'p',
+  Key_up = 'w',
+  Key_down = 's',
+  Key_left = 'a',
+  Key_right = 'd'
 };
 
+typedef enum GameStatus {
+  Exit,
+  Game,
+  Menu
+} gstate;
+
 typedef enum {
-  ID_FROG = 0,
-  ID_QUIT 
+  Id_frog,
+  Id_croc_slow,
+  Id_croc_normal,
+  Id_croc_fast,
+  Id_quit 
 } msgid;
+
+enum Speeds {
+  Slow,
+  Normal, 
+  Fast
+};
+
+typedef struct Position {
+  int x;
+  int y;
+} pos;
 
 typedef struct Message {
   msgid id; 
-  int y;
-  int x;
-
+  pos p;
+  pos crocs[NLANES*4];
 } msg;
 
 #endif
