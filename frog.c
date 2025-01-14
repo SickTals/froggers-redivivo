@@ -39,22 +39,22 @@ void frog(WINDOW **win, int pipefd[]){
 msg handleFrog(pos p, msg f)
 {
   if (p.y == '+')
-    f.p.y--;
+    f.p.y -= Y_STEP;
   else if (p.y == '-')
-    f.p.y++;
+    f.p.y += Y_STEP;
   if (p.x == '-')
-    f.p.x -= strlen(SPRITE_FROG);
+    f.p.x -= X_STEP;
   else if (p.x == '+')
-    f.p.x += strlen(SPRITE_FROG);
+    f.p.x += X_STEP;
 
-  if (f.p.y < 0)
-    f.p.y++;
-  else if (f.p.y > GSIZE/2)
-    f.p.y--;
+  if (f.p.y <= 1)
+    f.p.y += Y_STEP;
+  else if (f.p.y >= GSIZE/2 - 1)
+    f.p.y -= Y_STEP;
   if (f.p.x < 0)
-    f.p.x += strlen(SPRITE_FROG);
-  else if (f.p.x > GSIZE)
-    f.p.x -= strlen(SPRITE_FROG);
+    f.p.x += X_STEP;
+  else if (f.p.x > GSIZE - 2)
+    f.p.x -= X_STEP;
 
   return f;
 }
@@ -62,4 +62,5 @@ msg handleFrog(pos p, msg f)
 void printFrog(WINDOW **g_win, msg f)
 {
   mvwprintw(*g_win, f.p.y, f.p.x, SPRITE_FROG);
+  mvwprintw(*g_win, f.p.y - 1, f.p.x, SPRITE_FROG);
 }

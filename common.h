@@ -1,7 +1,7 @@
 #ifndef COMMON_HEADER
 #define COMMON_HEADER
 
-#define GSIZE 56 //36 fiume, 2*10 margini, 16x16 * 3.5
+#define GSIZE 56 //16 fiume, margini 2*2, tane 6, 16x16 * 3.5
 #define PSIZE 56/2
 #define UISIZE 8
 
@@ -48,7 +48,7 @@ typedef struct Position {
 typedef struct Message {
   msgid id; 
   pos p;
-  pos crocs[NLANES*4];
+  pos crocs[NLANES*8];
 } msg;
 
 #endif

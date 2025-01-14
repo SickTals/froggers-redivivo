@@ -100,23 +100,24 @@ int game(WINDOW **g_win)
   
   msg msgs[NTASKS + 1];
   msgs[Id_frog].id = Id_frog;
-  msgs[Id_frog].p.y = 2;
-  msgs[Id_frog].p.x = 2;
-  for (int i = 0; i < NLANES*4; i++) {
-    msgs[Id_croc_slow].crocs[i].y = -1;
-    msgs[Id_croc_slow].crocs[i].x = -1;
-    msgs[Id_croc_normal].crocs[i].y = -1;
-    msgs[Id_croc_normal].crocs[i].x = -1;
-    msgs[Id_croc_fast].crocs[i].y = -1;
-    msgs[Id_croc_fast].crocs[i].x = -1;
+  msgs[Id_frog].p.y = GSIZE/2 - 2;
+  msgs[Id_frog].p.x = GSIZE/2;
+  for (int i = 0; i < NLANES*8; i++) {
+    msgs[Id_croc_slow].crocs[i].y = -10;
+    msgs[Id_croc_slow].crocs[i].x = -10;
+    msgs[Id_croc_normal].crocs[i].y = -10;
+    msgs[Id_croc_normal].crocs[i].x = -10;
+    msgs[Id_croc_fast].crocs[i].y = -10;
+    msgs[Id_croc_fast].crocs[i].x = -10;
   }
   while (flag == Game) {
     close(pipefd[1]);
     
     wclear(*g_win);
-    box(*g_win, ACS_VLINE, ACS_HLINE);
+    printCrocs(g_win, msgs[Id_croc_slow].crocs,
+               msgs[Id_croc_normal].crocs, msgs[Id_croc_fast].crocs);
     printFrog(g_win, msgs[Id_frog]);
-    mvwprintw(*g_win, 2, 2, "%d", msgs[Id_croc_fast].crocs[0].x);
+    box(*g_win, ACS_VLINE, ACS_HLINE);
     wrefresh(*g_win);
     
     (void)read(pipefd[0], &msgs[NTASKS], sizeof(msgs[NTASKS]));
