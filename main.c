@@ -56,36 +56,33 @@ void initObjects(msg msgs[])
     msgs[Id_frog].shoots = false;
     for (int i = 0; i < CROC_CAP; i++) {
         msgs[Id_croc_slow].crocs[i] = invalidateCrocodile(msgs[Id_croc_slow].crocs[i]);
-        msgs[Id_croc_slow].shoots = false;
-        msgs[Id_croc_normal].crocs[i] = invalidateCrocodile(msgs[Id_croc_slow].crocs[i]);
-        msgs[Id_croc_normal].shoots = false;
-        msgs[Id_croc_fast].crocs[i] = invalidateCrocodile(msgs[Id_croc_slow].crocs[i]);
-        msgs[Id_croc_fast].shoots = false;
+        msgs[Id_croc_normal].crocs[i] = invalidateCrocodile(msgs[Id_croc_normal].crocs[i]);
+        msgs[Id_croc_fast].crocs[i] = invalidateCrocodile(msgs[Id_croc_fast].crocs[i]);
     }
 }
 
 void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], rvr r)
 {
+    close(pipefd_projectiles[1]);
     switch (i) {
         case Id_frog:
+            close(pipefd_projectiles[0]);
             frog(g_win, pipefd);
-            exit(0);
             break;
         case Id_granade:
-            granade(g_win, pipefd, pipefd_projectiles);
-            _exit(0);
+            granade(pipefd, pipefd_projectiles);
             break;
         case Id_croc_slow:
+            close(pipefd_projectiles[0]);
             river(r, Slow, pipefd);
-            exit(0);
             break;
         case Id_croc_normal:
+            close(pipefd_projectiles[0]);
             river(r, Normal, pipefd);
-            exit(0);
             break;
         case Id_croc_fast:
+            close(pipefd_projectiles[0]);
             river(r, Fast, pipefd);
-            exit(0);
             break;
     }
 
@@ -128,10 +125,10 @@ int game(WINDOW **g_win)
     msg msgs[NTASKS + 1];
     initObjects(msgs);
     bool grenade_active = false;  // Add this flag
+    close(pipefd[1]);
+    close(pipefd_projectiles[0]);
 
     while (flag == Game) {
-        close(pipefd[1]);
-        close(pipefd_projectiles[0]);
         
         wclear(*g_win);
         printCrocs(g_win, msgs[Id_croc_slow].crocs,
@@ -155,7 +152,7 @@ int game(WINDOW **g_win)
                 break;
             case Id_granade:
                 msgs[Id_granade] = msgs[NTASKS];
-                if (msgs[Id_granade].p.x >= GSIZE || msgs[Id_granade].sx_x <= 0)
+                if (msgs[Id_granade].p.x >= GSIZE && msgs[Id_granade].sx_x <= 0)
                     grenade_active = false;
                 break;
             case Id_croc_slow:
@@ -173,15 +170,15 @@ int game(WINDOW **g_win)
         }
     }
     close(pipefd[0]);
-    for (int i = 0; i < NTASKS; i++) {
-        if (kill(pids[i], SIGKILL) != -1)
-            continue;
-        perror("kill failed");
-        return 1;
-        wait(NULL);
-    }
+    for (int i = 0; i < NTASKS; i++)
+        kill(pids[i], SIGKILL);
+
+    int status;
+    pid_t pid;
+    do {
+        pid = waitpid(-1, &status, WNOHANG); // Non-blocking wait
+    } while (pid > 0 || (pid == -1 && errno == EINTR));
 
     delwin(p_win);
     return flag;
 }
-

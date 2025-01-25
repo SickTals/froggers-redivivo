@@ -170,8 +170,6 @@ void river(rvr r, int speed, int pipefd[])
                 break;
         }
     }
-
-    close(pipefd[1]);
 }
 
 msg handleCroc(pos p[], msg c) {

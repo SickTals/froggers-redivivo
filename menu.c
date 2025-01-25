@@ -78,6 +78,7 @@ gstate handleSelection(int cursor)
     case 0:
       return Game;
     case 1:
+        // TODO: for now just exit
     case 2:
       return Exit;
     default:

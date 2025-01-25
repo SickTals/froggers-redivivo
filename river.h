@@ -32,12 +32,9 @@ typedef struct River {
 rvr generateRiver();
 pos invalidateCrocodile(pos c);
 msg initCrocodiles(int speed);
-bool isNotSpawned(int i, int n);
 pos updateCrocodilePosition(pos croc, bool moveRight);
 void river(rvr r, int speed, int pipefd[]);
-void swapPos(pos a[], int i, int j);
 msg handleCroc(pos p[], msg c);
-msg* mergeCrocPos(pos s[], pos n[], pos f[]);
 void printCrocodileType(WINDOW **g_win, pos crocs[]);
 void printCrocs(WINDOW **g_win, pos slow[], pos normal[], pos fast[]);
 

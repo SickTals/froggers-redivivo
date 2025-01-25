@@ -14,16 +14,16 @@ void frog(WINDOW **win, int pipefd[]){
         flushinp();
         switch(user_input){
             case Key_up: 
-                msg_frog.p.y = (int)'+';
+                msg_frog.p.y = Key_up;
                 break;
             case Key_down:
-                msg_frog.p.y = (int)'-';
+                msg_frog.p.y = Key_down;
                 break;
             case Key_left:
-                msg_frog.p.x = (int)'-';
+                msg_frog.p.x = Key_left;
                 break;
             case Key_right:
-                msg_frog.p.x = (int)'+';
+                msg_frog.p.x = Key_right;
                 break;
             case Key_shoot:
                 msg_frog.shoots = true;
@@ -38,22 +38,21 @@ void frog(WINDOW **win, int pipefd[]){
         (void)write(pipefd[1], &msg_frog, sizeof(msg_frog));
         msg_frog.shoots = false;
     }
-    close(pipefd[1]);
 }
 
 msg handleFrog(pos p, msg f)
 {
-    if (p.y == '+')
+    if (p.y == Key_up)
         f.p.y -= Y_STEP;
-    else if (p.y == '-')
+    else if (p.y == Key_down)
         f.p.y += Y_STEP;
-    if (p.x == '-')
+    if (p.x == Key_left)
         f.p.x -= X_STEP;
-    else if (p.x == '+')
+    else if (p.x == Key_right)
         f.p.x += X_STEP;
 
     if (f.p.y <= 1)
-        f.p.y += Y_STEP;
+        f.p.y = 2;
     else if (f.p.y >= GSIZE/2 - 1)
         f.p.y -= Y_STEP;
     if (f.p.x < 0)
@@ -70,10 +69,9 @@ void printFrog(WINDOW **g_win, msg f)
     mvwprintw(*g_win, f.p.y - 1, f.p.x, SPRITE_FROG);
 }
 
-void granade(WINDOW **g_win, int pipefd[], int pipefd_projectiles[]) {
+void granade(int pipefd[], int pipefd_projectiles[]) {
     msg g;
     close(pipefd[0]);
-    close(pipefd_projectiles[1]);
     
     while (true) {
         g.shoots = false;
@@ -89,6 +87,11 @@ void granade(WINDOW **g_win, int pipefd[], int pipefd_projectiles[]) {
         g.id = Id_granade;
         g.sx_x = g.p.x - 1;
         g.p.x += strlen(SPRITE_FROG);
+
+        if (g.p.x >= GSIZE) 
+            g.p.x = GSIZE - 1;
+        if (g.sx_x < 0)
+            g.sx_x = 0;
 
         while (g.p.x < GSIZE || g.sx_x > 0) {
             g.p.x++;
