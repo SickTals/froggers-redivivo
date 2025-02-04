@@ -16,6 +16,7 @@ enum Keys {
     Key_exit = 'Q',
     Key_quit = 'q',
     Key_pause = 'p',
+    Key_resume = 'r',
     Key_up = 'w',
     Key_down = 's',
     Key_left = 'a',
@@ -26,7 +27,8 @@ enum Keys {
 typedef enum GameStatus {
     Exit,
     Game,
-    Menu
+    Menu,
+    PMenu
 } gstate;
 
 typedef enum {
@@ -35,6 +37,7 @@ typedef enum {
     Id_croc_slow,
     Id_croc_normal,
     Id_croc_fast,
+    Id_pause,
     Id_quit 
 } msgid;
 

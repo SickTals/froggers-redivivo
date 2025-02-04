@@ -5,9 +5,9 @@ void frog(WINDOW **win, int pipefd[]){
     close(pipefd[0]);
     char user_input;
     msg msg_frog;
-    msg_frog.id = Id_frog;
     msg_frog.shoots = false;
     while(true){ // Ciclo infinito chiuso dal padre
+        msg_frog.id = Id_frog;
         msg_frog.p.y = 0;
         msg_frog.p.x = 0;
         user_input = wgetch(*win);
@@ -28,8 +28,9 @@ void frog(WINDOW **win, int pipefd[]){
             case Key_shoot:
                 msg_frog.shoots = true;
                 break;
-        // TODO: funzione della pausa
-        //  case PAUSE_KEY: break;
+            case Key_pause:
+                msg_frog.id = Id_pause;
+                break;
             case Key_quit:
                 msg_frog.id = Id_quit;
                 break;

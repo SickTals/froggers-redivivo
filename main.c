@@ -18,8 +18,8 @@ int main()
             flag = menu(&g_win);
         if (flag == Exit)
             break;
-    if (flag == Game)
-        flag = game(&g_win);
+        if (flag == Game)
+            flag = game(&g_win);
     }
 
     end_screen(&g_win, &ui_win);
@@ -163,6 +163,19 @@ int game(WINDOW **g_win)
                 break;
             case Id_croc_fast:
                 msgs[Id_croc_fast] = handleCroc(msgs[NTASKS].crocs, msgs[Id_croc_fast]);
+                break;
+            case Id_pause:
+                for (int i = 0; i < NTASKS; i++)
+                    kill(pids[i], SIGSTOP);
+
+                flushinp();
+                flag = PauseMenu(&p_win);
+
+                if (flag == Game)
+                    for (int i = 0; i < NTASKS; i++)
+                        kill(pids[i], SIGCONT);
+
+                flushinp();
                 break;
             case Id_quit:
                 flag = Menu;
