@@ -2,12 +2,13 @@
 #define COMMON
 
 #define GSIZE 56 //16 fiume, margini 2*2, tane 6, 16x16 * 3.5
-#define PSIZE 56/2
+#define PSIZE 42
 #define UISIZE 8
 #define UDELAY 500000
 
 #define SPRITE_CURSOR '>'
 #define SPRITE_FROG ">M<"
+
 
 #define NLANES 8
 #define CROC_CAP NLANES*NLANES
@@ -16,7 +17,6 @@ enum Keys {
     Key_exit = 'Q',
     Key_quit = 'q',
     Key_pause = 'p',
-    Key_resume = 'r',
     Key_up = 'w',
     Key_down = 's',
     Key_left = 'a',

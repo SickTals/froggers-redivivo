@@ -86,76 +86,40 @@ gstate handleSelection(int cursor)
   }
 }
 
-gstate PauseMenu(WINDOW **p_win)
+void PauseMenu(WINDOW **p_win)
 {
-    int cursor = 0;
     gstate flag = PMenu;
+    char sprite[5][33] = {
+            "  ____                          ",
+            " |  _ \\ __ _ _   _ ___  ___    ",
+            " | |_) / _` | | | / __|/ _ \\   ",
+            " |  __/ (_| | |_| \\__ \\  __/  ",
+            " |_|   \\__,_|\\__,_|___/\\___| "};
 
-    while(flag == PMenu) {
+    while(flag == PMenu){
         wclear(*p_win);
-        printPauseMenu(p_win, cursor);
+        printPauseMenu(p_win, sprite);
         wrefresh(*p_win);
-        flag = handlePauseMenu(p_win, &cursor);
+        char user_input = wgetch(*p_win);
+        switch (user_input) {
+            case Key_pause:
+            case '\n':
+            case ' ':
+                flag = Game;
+                break;
+            default:
+                flag = PMenu;
+                break;
+        }
     }
-    return flag;
 }
 
-void printPauseMenu(WINDOW **win, int cursor)
+void printPauseMenu(WINDOW **win, char sprite[5][33])
 {
     box(*win, ACS_VLINE, ACS_HLINE);
-    mvwprintw(*win, GSIZE/8, GSIZE/2 - strlen(MSG_TO_STRING_P(Msg_play))/2,
-              MSG_TO_STRING_P(Msg_play));
-    mvwprintw(*win, GSIZE/4 + GSIZE/8, GSIZE/2 - strlen(MSG_TO_STRING_P(Msg_quit))/2,
-              MSG_TO_STRING_P(Msg_quit));
-    switch (cursor) {
-        case Msg_play:
-            mvwaddch(*win, GSIZE/8, GSIZE/2 - strlen(MSG_TO_STRING_P(Msg_play))/2 - 2,
-                     SPRITE_CURSOR);
-            break;
-        case Msg_quit:
-            mvwaddch(*win, GSIZE/4 + GSIZE/8, GSIZE/2 - strlen(MSG_TO_STRING_P(Msg_quit))/2 - 2,
-                     SPRITE_CURSOR);
-            break;
+    for(int i = 0; i < 5; i++) {
+        mvwprintw(*win, 4 + i, 7, "%s", sprite[i]); // Update row to 4 + i
     }
+    wrefresh(*win); // Ensure the window is refreshed
 }
 
-gstate handlePauseMenu(WINDOW **win, int *cursor)
-{
-    char user_input = wgetch(*win);
-    switch (user_input) {
-        case Key_quit:
-            return Menu;
-        case Key_resume:
-            return Game;
-        case (char)KEY_UP:
-        case Key_up:
-            *cursor -= 1;
-            break;
-        case (char)KEY_DOWN:
-        case Key_down:
-            *cursor += 1;
-            break;
-        case '\n':
-        case ' ':
-            return handlePauseSelection(*cursor);
-    }
-
-    if (*cursor < Msg_play)
-        *cursor = Msg_quit;
-    if (*cursor > Msg_quit)
-        *cursor = Msg_play;
-
-    return PMenu;
-}
-
-gstate handlePauseSelection(int cursor)
-{
-    switch(cursor) {
-        case 0:
-            return Game;
-        case 1:
-            return Menu;
-        default:
-            return Game;
-    }
-}

@@ -110,7 +110,7 @@ int game(WINDOW **g_win)
         exit(1);
     }
 
-    p_win = newwin(PSIZE/2, PSIZE, (LINES - PSIZE/2)/2, (COLS - PSIZE)/2);
+    p_win = newwin(PSIZE/3, PSIZE, (LINES - PSIZE/3)/2, ((COLS - PSIZE) - UISIZE)/2);
     box(p_win, ACS_VLINE, ACS_HLINE);
 
     for (int i = 0; i < NTASKS; i++) {
@@ -169,13 +169,11 @@ int game(WINDOW **g_win)
                     kill(pids[i], SIGSTOP);
 
                 flushinp();
-                flag = PauseMenu(&p_win);
+                PauseMenu(&p_win);
 
-                if (flag == Game)
-                    for (int i = 0; i < NTASKS; i++)
-                        kill(pids[i], SIGCONT);
+                for (int i = 0; i < NTASKS; i++)
+                    kill(pids[i], SIGCONT);
 
-                flushinp();
                 break;
             case Id_quit:
                 flag = Menu;
