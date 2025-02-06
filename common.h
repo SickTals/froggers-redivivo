@@ -2,7 +2,7 @@
 #define COMMON
 
 #define GSIZE 56 //16 fiume, margini 2*2, tane 6, 16x16 * 3.5
-#define PSIZE 56/2
+#define PSIZE 42
 #define UISIZE 8
 #define UDELAY 500000
 
@@ -27,7 +27,8 @@ typedef enum GameStatus {
     Exit,
     Game,
     Menu,
-    Dies
+    Dies,
+    Pmenu
 } gstate;
 
 typedef enum {
@@ -36,13 +37,15 @@ typedef enum {
     Id_croc_slow,
     Id_croc_normal,
     Id_croc_fast,
-    Id_quit 
+    Id_croc_projectile,
+    Id_quit,
+    Id_pause
 } msgid;
 
 enum Speeds {
-    Slow = 2,
-    Normal = 3, 
-    Fast = 4
+    Slow = Id_croc_slow,
+    Normal = Id_croc_normal, 
+    Fast = Id_croc_fast
 };
 
 typedef struct Position {

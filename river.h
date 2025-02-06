@@ -37,5 +37,6 @@ obj updateCrocodilePosition(obj croc, bool moveRight);
 void river(rvr r, enum Speeds speed, int pipefd[]);
 msg handleCroc(obj p[], msg c);
 void printCrocs(WINDOW **g_win, msg *c, int nspeeds);
+msg handleCrocProjectile(int pipefd_projectiles[]);
 
 #endif

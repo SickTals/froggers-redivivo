@@ -46,6 +46,7 @@ msg initCrocodiles(enum Speeds speed)
 
 obj updateCrocodilePosition(obj croc, bool moveRight)
 {
+    croc.shoots = SHOOT_CHANCE;
     if (moveRight) {
         croc.x += MOVE_STEP;
         if (croc.x >= GSIZE)
@@ -112,7 +113,7 @@ void river(rvr r, enum Speeds speed, int pipefd[])
     msg croc = initCrocodiles(speed);
     
     int free_counter[NLANES] = {0};
-    int active_crocs = 0;
+    int active_crocs;
     
     while (true) {
         active_crocs = 0;
@@ -126,13 +127,6 @@ void river(rvr r, enum Speeds speed, int pipefd[])
         for (int i = 0; i < CROC_CAP; i++)
             croc.crocs[i] = compactCrocs(croc.crocs, i, &validIdx);
 
-        // projectiles
-        for (int i = 0; i < CROC_CAP; i++) {
-            if (croc.crocs[i].x == INVALID_CROC || croc.crocs[i].y == INVALID_CROC)
-                break;
-            croc.crocs[i].shoots = SHOOT_CHANCE;
-        }
-        
         // Spawn new crocodiles
         for (int lane = 0; lane < NLANES; lane++) {
             if (r.speeds[lane] != speed)
@@ -166,7 +160,7 @@ msg handleCroc(obj p[], msg c) {
     // Clear all positions
     for (int i = 0; i < CROC_CAP; i++)
         c.crocs[i] = invalidateCrocodile(c.crocs[i]);
-    
+
     // Copy valid positions
     int validIdx = 0;
     for (int i = 0; i < CROC_CAP; i++) {
@@ -175,6 +169,10 @@ msg handleCroc(obj p[], msg c) {
         c.crocs[validIdx] = p[i];
         validIdx++;
     }
+    
+    if (c.shoots)
+        c.id = Id_croc_projectile;
+
     return c;
 }
 
@@ -194,4 +192,10 @@ void printCrocs(WINDOW **g_win, msg *c, int nspeeds)
         }
         
     }
+}
+
+msg handleCrocProjectile(int pipefd_projectiles[])
+{
+    msg c;
+    return c;
 }
