@@ -26,7 +26,8 @@ enum Keys {
 typedef enum GameStatus {
     Exit,
     Game,
-    Menu
+    Menu,
+    Dies
 } gstate;
 
 typedef enum {
@@ -39,9 +40,9 @@ typedef enum {
 } msgid;
 
 enum Speeds {
-    Slow,
-    Normal, 
-    Fast
+    Slow = 2,
+    Normal = 3, 
+    Fast = 4
 };
 
 typedef struct Position {
@@ -49,10 +50,16 @@ typedef struct Position {
     int y;
 } pos;
 
+typedef struct Object {
+    int x;
+    int y;
+    bool shoots;
+} obj;
+
 typedef struct Message {
     msgid id; 
     pos p;
-    pos crocs[CROC_CAP];
+    obj crocs[CROC_CAP];
     bool shoots;
     int sx_x;
 } msg;

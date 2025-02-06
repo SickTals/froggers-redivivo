@@ -2,23 +2,6 @@
 #include "common.h"
 #include "ncurses.h"
 
-
-// Helper function to get message ID based on speed
-static msgid getSpeedId(int speed)
-{
-    switch (speed) {
-        case Slow:
-            return Id_croc_slow;
-        case Normal:
-            return Id_croc_normal;
-        case Fast:
-
-            return Id_croc_fast;
-        default:
-            return Id_croc_normal;
-    }
-}
-
 rvr generateRiver()
 {
     rvr r;
@@ -28,7 +11,7 @@ rvr generateRiver()
     return r;
 }
 
-static bool canSpawnCrocodile(pos crocs[], int count, int lane_y, bool moveRight, int spawn_x)
+static bool canSpawnCrocodile(obj crocs[], int count, int lane_y, bool moveRight, int spawn_x)
 {
     for (int i = 0; i < count; i++) {
         if (crocs[i].y != lane_y)
@@ -42,17 +25,17 @@ static bool canSpawnCrocodile(pos crocs[], int count, int lane_y, bool moveRight
     return true;
 }
 
-pos invalidateCrocodile(pos c)
+obj invalidateCrocodile(obj c)
 {
     c.x = INVALID_CROC;
     c.y = INVALID_CROC;
     return c;
 }
 
-msg initCrocodiles(int speed)
+msg initCrocodiles(enum Speeds speed)
 {
     msg croc = {
-        .id = getSpeedId(speed)
+        .id = (msgid)speed
     };
     // Initialize all positions as invalid
     for (int i = 0; i < CROC_CAP; i++)
@@ -61,7 +44,7 @@ msg initCrocodiles(int speed)
     return croc;
 }
 
-pos updateCrocodilePosition(pos croc, bool moveRight)
+obj updateCrocodilePosition(obj croc, bool moveRight)
 {
     if (moveRight) {
         croc.x += MOVE_STEP;
@@ -75,7 +58,7 @@ pos updateCrocodilePosition(pos croc, bool moveRight)
     return croc;
 }
 
-pos updateCrocodile(pos c, bool isRight, int *active_crocs)
+obj updateCrocodile(obj c, bool isRight, int *active_crocs)
 {
     if (c.x == INVALID_CROC || c.y == INVALID_CROC)
         return c;
@@ -96,7 +79,7 @@ pos updateCrocodile(pos c, bool isRight, int *active_crocs)
     return c;
 }
 
-pos compactCrocs(pos c[], int i, int *validIdx)
+obj compactCrocs(obj c[], int i, int *validIdx)
 {
     if (c[i].x == INVALID_CROC && c[i].y == INVALID_CROC)
         return c[i];
@@ -108,7 +91,7 @@ pos compactCrocs(pos c[], int i, int *validIdx)
     return c[i];
 }
 
-pos spawnCrocodile(pos c[], int lane, bool isRight, int validIdx)
+obj spawnCrocodile(obj c[], int lane, bool isRight, int validIdx)
 {
     int lane_y = GSIZE/2 - 2 - (1 + lane) * 2;
     bool moveRight = (isRight + lane) % 2 == 0;
@@ -122,7 +105,7 @@ pos spawnCrocodile(pos c[], int lane, bool isRight, int validIdx)
 
 }
 
-void river(rvr r, int speed, int pipefd[])
+void river(rvr r, enum Speeds speed, int pipefd[])
 {
     close(pipefd[0]);
     
@@ -142,6 +125,13 @@ void river(rvr r, int speed, int pipefd[])
         int validIdx = 0;
         for (int i = 0; i < CROC_CAP; i++)
             croc.crocs[i] = compactCrocs(croc.crocs, i, &validIdx);
+
+        // projectiles
+        for (int i = 0; i < CROC_CAP; i++) {
+            if (croc.crocs[i].x == INVALID_CROC || croc.crocs[i].y == INVALID_CROC)
+                break;
+            croc.crocs[i].shoots = SHOOT_CHANCE;
+        }
         
         // Spawn new crocodiles
         for (int lane = 0; lane < NLANES; lane++) {
@@ -166,13 +156,13 @@ void river(rvr r, int speed, int pipefd[])
                 usleep(UDELAY);
                 break;
             case Fast:
-                usleep(UDELAY/2);
+                usleep(UDELAY / 2);
                 break;
         }
     }
 }
 
-msg handleCroc(pos p[], msg c) {
+msg handleCroc(obj p[], msg c) {
     // Clear all positions
     for (int i = 0; i < CROC_CAP; i++)
         c.crocs[i] = invalidateCrocodile(c.crocs[i]);
@@ -187,24 +177,21 @@ msg handleCroc(pos p[], msg c) {
     }
     return c;
 }
-// Helper function to print a single crocodile type
-void printCrocodileType(WINDOW **g_win, pos crocs[])
-{
-    for (int j = 0; j < CROC_CAP; j++) {
-        if (crocs[j].x == INVALID_CROC || crocs[j].y == INVALID_CROC)
-            break;
-        for (int i = 0; i < SIZE_CROC; i++) {
-            if (!(IS_ON_SCREEN(crocs[j].x + i)))
-                continue;
-            mvwaddch(*g_win, crocs[j].y, crocs[j].x + i, SPRITE_CROC);
-            mvwaddch(*g_win, crocs[j].y - 1, crocs[j].x + i, SPRITE_CROC);
-        }
-    }
-}
 
-void printCrocs(WINDOW **g_win, pos slow[], pos normal[], pos fast[])
+void printCrocs(WINDOW **g_win, msg *c, int nspeeds)
 {
-    printCrocodileType(g_win, slow);
-    printCrocodileType(g_win, normal);
-    printCrocodileType(g_win, fast);
+    for (int s = 0; s < nspeeds; s++)
+    {
+        for (int j = 0; j < CROC_CAP; j++) {
+            if (c[s].crocs[j].x == INVALID_CROC || c[s].crocs[j].y == INVALID_CROC)
+                break;
+            for (int i = 0; i < SIZE_CROC; i++) {
+                if (!(IS_ON_SCREEN(c[s].crocs[j].x + i)))
+                    continue;
+                mvwaddch(*g_win, c[s].crocs[j].y, c[s].crocs[j].x + i, SPRITE_CROC);
+                mvwaddch(*g_win, c[s].crocs[j].y - 1, c[s].crocs[j].x + i, SPRITE_CROC);
+            }
+        }
+        
+    }
 }
