@@ -70,13 +70,13 @@ void printFrog(WINDOW **g_win, msg f)
     mvwprintw(*g_win, f.p.y - 1, f.p.x, SPRITE_FROG);
 }
 
-void granade(int pipefd[], int pipefd_projectiles[]) {
+void granade(int pipefd[], int pipefd_grenade[]) {
     msg g;
     close(pipefd[0]);
     
     while (true) {
         g.shoots = false;
-        ssize_t bytes_read = read(pipefd_projectiles[0], &g, sizeof(g));
+        ssize_t bytes_read = read(pipefd_grenade[0], &g, sizeof(g));
         // Check if read was successful
         if (bytes_read != sizeof(g)) {
             perror("Read error on projectile pipe");
@@ -101,8 +101,11 @@ void granade(int pipefd[], int pipefd_projectiles[]) {
             (void)write(pipefd[1], &g, sizeof(g));
             usleep(UDELAY/3);
         }
+
+        usleep(UDELAY);
     }
 }
+
 
 void printGranade(WINDOW **g_win, msg g)
 {

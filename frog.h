@@ -12,7 +12,7 @@
 void frog(WINDOW **win, int pipefd[]);
 msg handleFrog(pos p, msg f);
 void printFrog(WINDOW **g_win, msg f);
-void granade(int pipefd[], int pipefd_projectiles[]);
+void granade(int pipefd[], int pipefd_grenade[]);
 void printGranade(WINDOW **g_win, msg g);
 
 #endif

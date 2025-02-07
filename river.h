@@ -5,6 +5,8 @@
 #include <ncurses.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
+#include <fcntl.h>
 #include "common.h"
 
 #define NSPEEDS 3
@@ -17,7 +19,7 @@
 #define MOVE_STEP 1
 #define INVALID_CROC -10
 #define SPAWN_CHANCE 10
-#define SHOOT_CHANCE !(rand() % 50)
+#define SHOOT_CHANCE !(rand() % 25)
 
 #define IS_VALID_LANE(lane) lane >= 0 && lane < NLANES
 #define IS_ON_SCREEN(x) x >= 0 && x < GSIZE
@@ -37,6 +39,7 @@ obj updateCrocodilePosition(obj croc, bool moveRight);
 void river(rvr r, enum Speeds speed, int pipefd[]);
 msg handleCroc(obj p[], msg c);
 void printCrocs(WINDOW **g_win, msg *c, int nspeeds);
-msg handleCrocProjectile(int pipefd_projectiles[]);
+void projectile(int pipefd[], int pipefd_projectiles[], bool isRight);
+void printCrocProjectile(WINDOW **g_win, msg p);
 
 #endif

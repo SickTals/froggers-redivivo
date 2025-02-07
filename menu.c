@@ -85,3 +85,40 @@ gstate handleSelection(int cursor)
       return Exit;
   }
 }
+
+void PauseMenu(WINDOW **p_win)
+{
+    gstate flag = Pmenu;
+    char sprite[5][33] = {
+            "  ____                          ",
+            " |  _ \\ __ _ _   _ ___  ___    ",
+            " | |_) / _` | | | / __|/ _ \\   ",
+            " |  __/ (_| | |_| \\__ \\  __/  ",
+            " |_|   \\__,_|\\__,_|___/\\___| "};
+
+    while(flag == Pmenu){
+        wclear(*p_win);
+        printPauseMenu(p_win, sprite);
+        wrefresh(*p_win);
+        char user_input = wgetch(*p_win);
+        switch (user_input) {
+            case Key_pause:
+            case '\n':
+            case ' ':
+                flag = Game;
+                break;
+            default:
+                flag = Pmenu;
+                break;
+        }
+    }
+}
+
+void printPauseMenu(WINDOW **win, char sprite[5][33])
+{
+    box(*win, ACS_VLINE, ACS_HLINE);
+    for(int i = 0; i < 5; i++) {
+        mvwprintw(*win, 4 + i, 7, "%s", sprite[i]); // Update row to 4 + i
+    }
+    wrefresh(*win); // Ensure the window is refreshed
+}

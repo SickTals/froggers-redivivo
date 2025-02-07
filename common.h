@@ -7,6 +7,7 @@
 #define UDELAY 500000
 
 #define SPRITE_CURSOR '>'
+#define SPRITE_PROJECTILE '*'
 #define SPRITE_FROG ">M<"
 
 #define NLANES 8
@@ -62,7 +63,7 @@ typedef struct Object {
 typedef struct Message {
     msgid id; 
     pos p;
-    obj crocs[CROC_CAP];
+    obj objs[CROC_CAP];
     bool shoots;
     int sx_x;
 } msg;
