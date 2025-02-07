@@ -9,7 +9,7 @@
 
 #define NSPEEDS 3
 #define COIN_FLIP rand() % 2
-#define RAND_SPEEDS rand() % NSPEEDS
+#define RAND_SPEEDS (2 + (rand() % NSPEEDS))
 #define SPRITE_CROC '-'
 #define SIZE_CROC 9
 #define MIN_GAP 3
@@ -17,6 +17,7 @@
 #define MOVE_STEP 1
 #define INVALID_CROC -10
 #define SPAWN_CHANCE 10
+#define SHOOT_CHANCE !(rand() % 50)
 
 #define IS_VALID_LANE(lane) lane >= 0 && lane < NLANES
 #define IS_ON_SCREEN(x) x >= 0 && x < GSIZE
@@ -26,16 +27,16 @@
 
 typedef struct River {
   bool isRight; // 0 = left, 1 = right
-  int speeds[NLANES];
+  enum Speeds speeds[NLANES];
 } rvr;
 
 rvr generateRiver();
-pos invalidateCrocodile(pos c);
-msg initCrocodiles(int speed);
-pos updateCrocodilePosition(pos croc, bool moveRight);
-void river(rvr r, int speed, int pipefd[]);
-msg handleCroc(pos p[], msg c);
-void printCrocodileType(WINDOW **g_win, pos crocs[]);
-void printCrocs(WINDOW **g_win, pos slow[], pos normal[], pos fast[]);
+obj invalidateCrocodile(obj c);
+msg initCrocodiles(enum Speeds speed);
+obj updateCrocodilePosition(obj croc, bool moveRight);
+void river(rvr r, enum Speeds speed, int pipefd[]);
+msg handleCroc(obj p[], msg c);
+void printCrocs(WINDOW **g_win, msg *c, int nspeeds);
+msg handleCrocProjectile(int pipefd_projectiles[]);
 
 #endif

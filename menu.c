@@ -88,17 +88,11 @@ gstate handleSelection(int cursor)
 
 void PauseMenu(WINDOW **p_win)
 {
-    gstate flag = PMenu;
-    char sprite[5][33] = {
-            "  ____                          ",
-            " |  _ \\ __ _ _   _ ___  ___    ",
-            " | |_) / _` | | | / __|/ _ \\   ",
-            " |  __/ (_| | |_| \\__ \\  __/  ",
-            " |_|   \\__,_|\\__,_|___/\\___| "};
+    gstate flag = Pmenu;
 
-    while(flag == PMenu){
+    while(flag == Pmenu){
         wclear(*p_win);
-        printPauseMenu(p_win, sprite);
+        printPauseMenu(p_win);
         wrefresh(*p_win);
         char user_input = wgetch(*p_win);
         switch (user_input) {
@@ -108,18 +102,23 @@ void PauseMenu(WINDOW **p_win)
                 flag = Game;
                 break;
             default:
-                flag = PMenu;
+                flag = Pmenu;
                 break;
         }
     }
 }
 
-void printPauseMenu(WINDOW **win, char sprite[5][33])
+void printPauseMenu(WINDOW **win)
 {
+    char SPRITE_PAUSE[5][33] = {
+            "  ____                          ",
+            " |  _ \\ __ _ _   _ ___  ___    ",
+            " | |_) / _` | | | / __|/ _ \\   ",
+            " |  __/ (_| | |_| \\__ \\  __/  ",
+            " |_|   \\__,_|\\__,_|___/\\___| "};
     box(*win, ACS_VLINE, ACS_HLINE);
     for(int i = 0; i < 5; i++) {
-        mvwprintw(*win, 4 + i, 7, "%s", sprite[i]); // Update row to 4 + i
+        mvwprintw(*win, 4 + i, 7, "%s", SPRITE_PAUSE[i]); // Update row to 4 + i
     }
     wrefresh(*win); // Ensure the window is refreshed
 }
-

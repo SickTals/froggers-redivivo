@@ -17,9 +17,15 @@
 
 #define NTASKS 5
 
+gstate game(WINDOW **g_win, bool dens[5]);
 void init_screen(WINDOW **g_win, WINDOW **ui_win);
+void initObjects(msg msgs[]);
 void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], rvr r);
 void end_screen(WINDOW **g_win, WINDOW **ui_win);
-int game(WINDOW **g_win);
+bool isDrawning(pos f, msg *c, int nspeeds);
+gstate collisions(msg msgs[], bool dens[5]);
+bool den (bool dens[5], pos frog_pos);
+void printDens(WINDOW **win, bool dens[5]);
+
 
 #endif

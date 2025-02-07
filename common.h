@@ -9,7 +9,6 @@
 #define SPRITE_CURSOR '>'
 #define SPRITE_FROG ">M<"
 
-
 #define NLANES 8
 #define CROC_CAP NLANES*NLANES
 
@@ -28,7 +27,9 @@ typedef enum GameStatus {
     Exit,
     Game,
     Menu,
-    PMenu
+    Dies,
+    Win,
+    Pmenu
 } gstate;
 
 typedef enum {
@@ -37,14 +38,15 @@ typedef enum {
     Id_croc_slow,
     Id_croc_normal,
     Id_croc_fast,
-    Id_pause,
-    Id_quit 
+    Id_croc_projectile,
+    Id_quit,
+    Id_pause
 } msgid;
 
 enum Speeds {
-    Slow,
-    Normal, 
-    Fast
+    Slow = Id_croc_slow,
+    Normal = Id_croc_normal, 
+    Fast = Id_croc_fast
 };
 
 typedef struct Position {
@@ -52,10 +54,16 @@ typedef struct Position {
     int y;
 } pos;
 
+typedef struct Object {
+    int x;
+    int y;
+    bool shoots;
+} obj;
+
 typedef struct Message {
     msgid id; 
     pos p;
-    pos crocs[CROC_CAP];
+    obj crocs[CROC_CAP];
     bool shoots;
     int sx_x;
 } msg;

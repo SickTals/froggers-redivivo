@@ -1,11 +1,15 @@
 #ifndef MENU
 #define MENU
 
+#include <unistd.h>
 #include <curses.h>
 #include <string.h>
+#include <stdio.h>
+#include <time.h>
 #include "common.h"
 
-enum MenuMsg {
+enum MenuMsg
+{
   Msg_play,
   Msg_opts,
   Msg_quit
@@ -16,12 +20,12 @@ enum MenuMsg {
      (msg) == Msg_opts ? "OPTIONS" : \
      (msg) == Msg_quit ? "QUIT"    : "Unknown")
 
-
 gstate menu(WINDOW **g_win);
 void printMenu(WINDOW **win, int cursor);
 gstate handleMenu(WINDOW **win, int *cursor);
 gstate handleSelection(int cursor);
 void PauseMenu(WINDOW **g_win);
-void printPauseMenu(WINDOW **win, char sprite[5][33]);
+void printPauseMenu(WINDOW **win);
+void timer(int pipefd[2]);
 
 #endif
