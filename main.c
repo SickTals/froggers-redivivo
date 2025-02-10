@@ -10,6 +10,8 @@ int main()
     WINDOW *g_win;
     WINDOW *ui_win;
     int lives = 3;
+    int score = 0;
+    bool dens[NDENS] = {false, false, false, false, false};
 
     srand(time(NULL));
     init_screen(&g_win, &ui_win);
@@ -19,12 +21,14 @@ int main()
             lives--;
             flag = Game;
         }
+        if (flag == Win)
+            flag = Game;
         if (flag == Menu)
             flag = menu(&g_win);
         if (flag == Exit)
             break;
         if (flag == Game)
-            flag = game(&g_win);
+            flag = game(&g_win, dens);
     }
 
     end_screen(&g_win, &ui_win);
@@ -98,9 +102,9 @@ void end_screen(WINDOW **g_win, WINDOW **ui_win)
 
 bool isDrawning(pos f, msg* c, int nspeeds)
 {
-    if (f.y == GSIZE/2 - 2)
+    if (f.y == GSIZE/2 - 2 || f.y <= GSIZE/2 - 2 - 16)
         return false;
-    
+    else {
     for (int k = 0; k < nspeeds; k++)
         for (int i = 0; i < CROC_CAP; i++) {
             if (c[k].objs[i].y == INVALID_CROC ||
@@ -111,18 +115,72 @@ bool isDrawning(pos f, msg* c, int nspeeds)
                 f.x <= c[k].objs[i].x + SIZE_CROC - 1)
                 return false;
         }
+    }
     return true;
 }
 
-gstate collisions(msg msgs[])
+bool den(bool dens[NDENS], pos frog_pos) {
+    for (int i = 0; i < NDENS; i++) {
+        int den_width = 7; // Width of each den sprite
+        int start_x = 3 + i + ((GSIZE - 6) / NDENS) * i;
+        int end_x = start_x + den_width - 1; // Inclusive
+        // Check vertical alignment (rows 1-3)
+        if (frog_pos.y < 1 || frog_pos.y > 4) continue;
+
+        // Check if any part of the frog's sprite (3 characters wide) overlaps the den
+        if (frog_pos.x > start_x && frog_pos.x < end_x && !dens[i]) {
+            dens[i] = true;
+            return true; // Exit after first valid collision
+        }
+    }
+    return false;
+}
+
+void printDens(WINDOW **win, bool dens[NDENS])
 {
-    if (isDrawning(msgs[Id_frog].p, &msgs[Id_croc_slow], NSPEEDS))
-        return Dies;
+	char SPRITE_DEN_OPEN[3][7] = {"SP\"\"YS",
+								  "S    S",
+								  "S.  .S"};
+
+    char SPRITE_DEN_CLOSE[3][7] = {"SP__YS",
+								   "SOOOOS",
+								   "S.\"\".S"};
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < NDENS; j++)
+        {
+            if (!dens[j])
+                mvwprintw(*win, 2 + i, 3 + j + ((GSIZE - 6) / NDENS) * j, "%s", SPRITE_DEN_OPEN[i]);
+            else
+                mvwprintw(*win, 2 + i, 3 + j + ((GSIZE - 6) / NDENS) * j, "%s", SPRITE_DEN_CLOSE[i]);
+
+        }
+    }
+
+}
+
+gstate collisions(msg msgs[], bool dens[NDENS])
+{
+    //if (isDrawning(msgs[Id_frog].p, &msgs[Id_croc_slow], NSPEEDS))
+    //    return Dies;
+
+
+    if (den(dens, msgs[Id_frog].p))
+        return Win;
+
+    for(int i = 0, j = 0; i < NDENS; i++) {
+        if(dens[i])
+            j++;
+        if(j == NDENS)
+            return Exit;
+    }
 
     return Game;
 }
 
-gstate game(WINDOW **g_win)
+
+
+gstate game(WINDOW **g_win, bool dens[NDENS])
 {
     WINDOW *p_win;
     gstate flag = Game;
@@ -161,6 +219,7 @@ gstate game(WINDOW **g_win)
 
     while (flag == Game) {
         wclear(*g_win);
+        printDens(g_win, dens);
         printCrocs(g_win, &msgs[Id_croc_slow], NSPEEDS);
         printFrog(g_win, msgs[Id_frog]);
         printCrocProjectile(g_win, msgs[Id_croc_projectile]);
@@ -168,7 +227,7 @@ gstate game(WINDOW **g_win)
         box(*g_win, ACS_VLINE, ACS_HLINE);
         wrefresh(*g_win);
 
-        flag = collisions(msgs);
+        flag = collisions(msgs, dens);
         
         (void)read(pipefd[0], &msgs[NTASKS], sizeof(msgs[NTASKS]));
 
@@ -238,6 +297,8 @@ gstate game(WINDOW **g_win)
                 break;
             case Id_quit:
                 flag = Menu;
+                for (int i = 0; i < NDENS; i++)
+                    dens[i] = false;
                 break;
         }
     }

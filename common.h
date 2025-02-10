@@ -29,6 +29,7 @@ typedef enum GameStatus {
     Game,
     Menu,
     Dies,
+    Win,
     Pmenu
 } gstate;
 
