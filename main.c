@@ -286,8 +286,6 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
 
         (void)read(pipefd[0], &msgs[NTASKS], sizeof(msgs[NTASKS]));
 
-        (void)read(pipefd[0], &msgs[NTASKS], sizeof(msgs[NTASKS]));
-
         switch (msgs[NTASKS].id) {
             case Id_frog:
                 msgs[Id_frog] = handleFrog(msgs[NTASKS].p, msgs[Id_frog]);

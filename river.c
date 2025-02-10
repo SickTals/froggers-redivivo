@@ -239,7 +239,7 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
 
                     projectiles.objs[j].y = tmp.objs[i].y;
                     projectiles.objs[j].x = moveRight ?
-                                            tmp.objs[i].x + SIZE_CROC - 1 : tmp.objs[i].x;
+                            tmp.objs[i].x + SIZE_CROC - 1 : tmp.objs[i].x;
                     projectiles.objs[j].shoots = true;
                     break;
                 }
