@@ -40,6 +40,7 @@ typedef enum {
     Id_croc_normal,
     Id_croc_fast,
     Id_croc_projectile,
+    Id_timer,
     Id_quit,
     Id_pause
 } msgid;

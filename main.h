@@ -12,11 +12,13 @@
 #include <sys/wait.h>
 #include "common.h"
 #include "menu.h"
+#include "ui.h"
 #include "frog.h"
 #include "river.h"
 
-#define NTASKS 6
+#define NTASKS 7
 #define NDENS 5
+
 
 void init_screen(WINDOW **g_win, WINDOW **ui_win);
 void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], int pipefd_grenade[], rvr r);
@@ -26,6 +28,6 @@ bool isShot (int proj_active, pos f, msg proj);
 bool den(bool dens[5], pos frog_pos);
 void printDens(WINDOW **win, bool dens[NDENS]);
 gstate collisions(msg msgs[], bool dens[NDENS], int proj_active);
-gstate game(WINDOW **g_win, bool dens[NDENS]);
+gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDENS]);
 
 #endif

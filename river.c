@@ -224,13 +224,22 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
                 for (int j = 0; j < CROC_CAP; j++) {
                     if (projectiles.objs[j].x != INVALID_CROC)
                         continue;
-                        
+
+                    // Ensure the shooting crocodile has a valid y-coordinate
+                    if (tmp.objs[i].y == INVALID_CROC)
+                        break;
+
                     int lane = (GSIZE/2 - 2 - tmp.objs[i].y - 1) / 2;
+
+                    // Additional validation for lane
+                    if (lane < 0 || lane >= NLANES)
+                        break;
+
                     bool moveRight = ((int)isRight + lane) % 2 == 0;
-                    
+
                     projectiles.objs[j].y = tmp.objs[i].y;
-                    projectiles.objs[j].x = moveRight ? 
-                        tmp.objs[i].x + SIZE_CROC - 1 : tmp.objs[i].x;
+                    projectiles.objs[j].x = moveRight ?
+                                            tmp.objs[i].x + SIZE_CROC - 1 : tmp.objs[i].x;
                     projectiles.objs[j].shoots = true;
                     break;
                 }
