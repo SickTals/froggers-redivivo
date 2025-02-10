@@ -100,11 +100,10 @@ void end_screen(WINDOW **g_win, WINDOW **ui_win)
     endwin();
 }
 
-bool isDrawning(pos f, msg* c, int nspeeds)
+bool isDrawning(pos f, msg *c, int nspeeds)
 {
     if (f.y == GSIZE/2 - 2 || f.y <= GSIZE/2 - 2 - 16)
         return false;
-    else {
     for (int k = 0; k < nspeeds; k++)
         for (int i = 0; i < CROC_CAP; i++) {
             if (c[k].objs[i].y == INVALID_CROC ||
@@ -115,8 +114,23 @@ bool isDrawning(pos f, msg* c, int nspeeds)
                 f.x <= c[k].objs[i].x + SIZE_CROC - 1)
                 return false;
         }
-    }
     return true;
+}
+
+bool isShot(int proj_active, pos f, msg proj)
+{
+    for (int i = 0; i < proj_active; i++)
+    {
+        if (proj.objs[i].y == INVALID_CROC ||
+            proj.objs[i].x == INVALID_CROC ||
+            f.y != proj.objs[i].y)
+            continue;
+
+        if (f.x == proj.objs[i].x) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool den(bool dens[NDENS], pos frog_pos) {
@@ -159,10 +173,11 @@ void printDens(WINDOW **win, bool dens[NDENS])
 
 }
 
-gstate collisions(msg msgs[], bool dens[NDENS])
+gstate collisions(msg msgs[], bool dens[NDENS], int proj_active)
 {
-    //if (isDrawning(msgs[Id_frog].p, &msgs[Id_croc_slow], NSPEEDS))
-    //    return Dies;
+    if (isDrawning(msgs[Id_frog].p, &msgs[Id_croc_slow], NSPEEDS)
+    || isShot(proj_active, msgs[Id_frog].p, msgs[Id_croc_projectile]))
+        return Dies;
 
 
     if (den(dens, msgs[Id_frog].p))
@@ -227,7 +242,7 @@ gstate game(WINDOW **g_win, bool dens[NDENS])
         box(*g_win, ACS_VLINE, ACS_HLINE);
         wrefresh(*g_win);
 
-        flag = collisions(msgs, dens);
+        flag = collisions(msgs, dens, croc_projectiles_active);
         
         (void)read(pipefd[0], &msgs[NTASKS], sizeof(msgs[NTASKS]));
 
