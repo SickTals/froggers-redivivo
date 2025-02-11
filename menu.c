@@ -1,27 +1,30 @@
 #include "menu.h"
 #include "common.h"
+#include "curses.h"
+
+
 /* 
  * Stampa il menu
  * Restituisce
  *  false - Esce dal gioco
  *  true - Avvia gioco
  */
-gstate menu(WINDOW **g_win)
+gstate menu(WINDOW **g_win, WINDOW **ui_win)
 {
-  int cursor = 0;
-  gstate flag = Menu;
+    int cursor = 0;
+    gstate flag = Menu;
 
-  while(flag == Menu) {
-    wclear(*g_win);
-    printMenu(g_win, cursor);
-    wrefresh(*g_win);
-    flag = handleMenu(g_win, &cursor);
-  }
-  return flag;
+    while(flag == Menu) {
+        //printMenuUi(ui_win);
+        printMenu(g_win, cursor);
+        flag = handleMenu(g_win, &cursor);
+    }
+    return flag;
 }
 
 void printMenu(WINDOW **win, int cursor)
 {
+    wclear(*win);
   box(*win, ACS_VLINE, ACS_HLINE);
   mvwprintw(*win, GSIZE/8, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
             MSG_TO_STRING(Msg_play));
@@ -42,6 +45,21 @@ void printMenu(WINDOW **win, int cursor)
       mvwaddch(*win, GSIZE/4 + GSIZE/8, GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2 - 2,
                SPRITE_CURSOR);
       break;
+  }
+    wrefresh(*win);
+}
+
+gstate handleSelection(int cursor)
+{
+  switch(cursor) {
+    case 0:
+      return Game;
+    case 1:
+        // TODO: for now just exit
+    case 2:
+      return Exit;
+    default:
+      return Exit;
   }
 }
 
@@ -72,20 +90,6 @@ gstate handleMenu(WINDOW **win, int *cursor)
   return Menu;
 }
 
-gstate handleSelection(int cursor)
-{
-  switch(cursor) {
-    case 0:
-      return Game;
-    case 1:
-        // TODO: for now just exit
-    case 2:
-      return Exit;
-    default:
-      return Exit;
-  }
-}
-
 void PauseMenu(WINDOW **p_win)
 {
     gstate flag = Pmenu;
@@ -94,7 +98,8 @@ void PauseMenu(WINDOW **p_win)
             " |  _ \\ __ _ _   _ ___  ___    ",
             " | |_) / _` | | | / __|/ _ \\   ",
             " |  __/ (_| | |_| \\__ \\  __/  ",
-            " |_|   \\__,_|\\__,_|___/\\___| "};
+            " |_|   \\__,_|\\__,_|___/\\___| "
+    };
 
     while(flag == Pmenu){
         wclear(*p_win);
@@ -117,8 +122,7 @@ void PauseMenu(WINDOW **p_win)
 void printPauseMenu(WINDOW **win, char sprite[5][33])
 {
     box(*win, ACS_VLINE, ACS_HLINE);
-    for(int i = 0; i < 5; i++) {
+    for(int i = 0; i < 5; i++)
         mvwprintw(*win, 4 + i, 7, "%s", sprite[i]); // Update row to 4 + i
-    }
     wrefresh(*win); // Ensure the window is refreshed
 }

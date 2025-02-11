@@ -226,6 +226,11 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
                         continue;
                         
                     int lane = (GSIZE/2 - 2 - tmp.objs[i].y - 1) / 2;
+                    if (tmp.objs[i].y == INVALID_CROC ||
+                        lane < 0 ||
+                        lane >= NLANES) {
+                        break;
+                    }
                     bool moveRight = ((int)isRight + lane) % 2 == 0;
                     
                     projectiles.objs[j].y = tmp.objs[i].y;

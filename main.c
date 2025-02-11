@@ -4,6 +4,7 @@
 #include "frog.h"
 #include "river.h"
 
+
 int main() 
 {
     gstate flag = Menu;
@@ -16,19 +17,33 @@ int main()
     srand(time(NULL));
     init_screen(&g_win, &ui_win);
 
-    while (true) {
-        if (flag == Dies) {
-            lives--;
-            flag = Game;
+    while (flag != Exit) {
+        if (lives < 0)
+            flag = Exit;
+        switch (flag) {
+            case Dies:
+                lives--;
+                flag = Game;
+                break;
+            case Win:
+                flag = Game;
+                score += 1000;
+                break;
+            case Menu:
+                lives = 3;
+                score = 0;
+                flag = menu(&g_win, &ui_win);
+                break;
+            case Exit:
+                flag = Exit;
+                break;
+            case Game:
+                flag = game(&g_win, &ui_win, lives, score, dens);
+                break;
+            default:
+                flag = Exit;
+                break;
         }
-        if (flag == Win)
-            flag = Game;
-        if (flag == Menu)
-            flag = menu(&g_win);
-        if (flag == Exit)
-            break;
-        if (flag == Game)
-            flag = game(&g_win, dens);
     }
 
     end_screen(&g_win, &ui_win);
@@ -59,6 +74,8 @@ void init_screen(WINDOW **g_win, WINDOW **ui_win)
 
 void initObjects(msg msgs[])
 {
+    msgs[Id_timer].id = Id_timer;
+    msgs[Id_timer].objs[Id_timer].y = TIME;
     msgs[Id_frog].id = Id_frog;
     msgs[Id_frog].p.y = GSIZE/2 - 2;
     msgs[Id_frog].p.x = GSIZE/2;
@@ -73,22 +90,32 @@ void initObjects(msg msgs[])
 void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], int pipefd_grenade[], rvr r)
 {
     close(pipefd_projectiles[1]);
+    close(pipefd_grenade[1]);
     switch (i) {
         case Id_frog:
+            close(pipefd_grenade[0]);
             close(pipefd_projectiles[0]);
             frog(g_win, pipefd);
             break;
         case Id_granade:
+            close(pipefd_projectiles[0]);
             granade(pipefd, pipefd_grenade);
             break;
         case Id_croc_slow:
         case Id_croc_normal:
         case Id_croc_fast:
+            close(pipefd_grenade[0]);
             close(pipefd_projectiles[0]);
             river(r, (enum Speeds)i, pipefd);
             break;
         case Id_croc_projectile:
+            close(pipefd_grenade[0]);
             projectile(pipefd, pipefd_projectiles, r.isRight);
+            break;
+        case Id_timer:
+            close(pipefd_grenade[0]);
+            close(pipefd_projectiles[0]);
+            timer(pipefd);
             break;
     }
 }
@@ -100,11 +127,10 @@ void end_screen(WINDOW **g_win, WINDOW **ui_win)
     endwin();
 }
 
-bool isDrawning(pos f, msg* c, int nspeeds)
+bool isDrawning(pos f, msg *c, int nspeeds)
 {
     if (f.y == GSIZE/2 - 2 || f.y <= GSIZE/2 - 2 - 16)
         return false;
-    else {
     for (int k = 0; k < nspeeds; k++)
         for (int i = 0; i < CROC_CAP; i++) {
             if (c[k].objs[i].y == INVALID_CROC ||
@@ -115,8 +141,23 @@ bool isDrawning(pos f, msg* c, int nspeeds)
                 f.x <= c[k].objs[i].x + SIZE_CROC - 1)
                 return false;
         }
-    }
     return true;
+}
+
+bool isShot(int proj_active, pos f, msg proj)
+{
+    for (int i = 0; i < proj_active; i++) {
+        if (proj.objs[i].y == INVALID_CROC ||
+            proj.objs[i].x == INVALID_CROC ||
+            f.y != proj.objs[i].y)
+            continue;
+
+        if (f.x == proj.objs[i].x ||
+        (f.x - 1) == proj.objs[i].x ||
+        (f.x + 1) == proj.objs[i].x)
+            return true;
+    }
+    return false;
 }
 
 bool den(bool dens[NDENS], pos frog_pos) {
@@ -159,11 +200,11 @@ void printDens(WINDOW **win, bool dens[NDENS])
 
 }
 
-gstate collisions(msg msgs[], bool dens[NDENS])
+gstate collisions(msg msgs[], bool dens[NDENS], int proj_active)
 {
-    //if (isDrawning(msgs[Id_frog].p, &msgs[Id_croc_slow], NSPEEDS))
-    //    return Dies;
-
+    if (isDrawning(msgs[Id_frog].p, &msgs[Id_croc_slow], NSPEEDS) ||
+        isShot(proj_active, msgs[Id_frog].p, msgs[Id_croc_projectile]))
+        return Dies;
 
     if (den(dens, msgs[Id_frog].p))
         return Win;
@@ -178,9 +219,7 @@ gstate collisions(msg msgs[], bool dens[NDENS])
     return Game;
 }
 
-
-
-gstate game(WINDOW **g_win, bool dens[NDENS])
+gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDENS])
 {
     WINDOW *p_win;
     gstate flag = Game;
@@ -216,18 +255,23 @@ gstate game(WINDOW **g_win, bool dens[NDENS])
     int croc_projectiles_active = 0;
     close(pipefd[1]);
     close(pipefd_projectiles[0]);
+    close(pipefd_grenade[0]);
 
     while (flag == Game) {
         wclear(*g_win);
+        wclear(*ui_win);
+        printUi(ui_win, msgs[Id_timer], lives, score);
         printDens(g_win, dens);
         printCrocs(g_win, &msgs[Id_croc_slow], NSPEEDS);
         printFrog(g_win, msgs[Id_frog]);
         printCrocProjectile(g_win, msgs[Id_croc_projectile]);
         printGranade(g_win, msgs[Id_granade]);
         box(*g_win, ACS_VLINE, ACS_HLINE);
+        box(*ui_win, ACS_VLINE, ACS_HLINE);
         wrefresh(*g_win);
+        wrefresh(*ui_win);
 
-        flag = collisions(msgs, dens);
+        flag = collisions(msgs, dens, croc_projectiles_active);
         
         (void)read(pipefd[0], &msgs[NTASKS], sizeof(msgs[NTASKS]));
 
@@ -285,6 +329,9 @@ gstate game(WINDOW **g_win, bool dens[NDENS])
                     }
                 }
                 break;
+            case Id_timer:
+                msgs[Id_timer] = msgs[NTASKS];
+                break;                
             case Id_pause:
                 for (int i = 0; i < NTASKS; i++)
                     kill(pids[i], SIGSTOP);
@@ -297,11 +344,22 @@ gstate game(WINDOW **g_win, bool dens[NDENS])
                 break;
             case Id_quit:
                 flag = Menu;
-                for (int i = 0; i < NDENS; i++)
+                for (int i = 0; i < NDENS; i++)     
                     dens[i] = false;
                 break;
         }
     }
+
+    msgs[Id_granade].p.x = GSIZE;  // Move grenade off screen
+    msgs[Id_granade].sx_x = 0;     // Reset the left side of grenade
+    grenade_active = false;         // Reset the active flag
+
+    // this // this
+    wclear(*g_win);
+    wclear(*ui_win);
+    box(*ui_win, ACS_VLINE, ACS_HLINE);
+    wrefresh(*g_win);
+    wrefresh(*ui_win);
 
     close(pipefd[0]);
     for (int i = 0; i < NTASKS; i++)

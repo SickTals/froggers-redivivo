@@ -3,7 +3,9 @@
 
 #include <curses.h>
 #include <string.h>
+#include <unistd.h>
 #include "common.h"
+#include "ui.h"
 
 enum MenuMsg {
   Msg_play,
@@ -16,7 +18,8 @@ enum MenuMsg {
      (msg) == Msg_opts ? "OPTIONS" : \
      (msg) == Msg_quit ? "QUIT"    : "Unknown")
 
-gstate menu(WINDOW **g_win);
+void ui_animation(int pipefd[], pid_t pid);
+gstate menu(WINDOW **g_win, WINDOW **ui_win);
 void printMenu(WINDOW **win, int cursor);
 gstate handleMenu(WINDOW **win, int *cursor);
 gstate handleSelection(int cursor);
