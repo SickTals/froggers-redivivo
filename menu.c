@@ -15,7 +15,7 @@ gstate menu(WINDOW **g_win, WINDOW **ui_win)
     gstate flag = Menu;
 
     while(flag == Menu) {
-        //printMenuUi(ui_win);
+        printMenuUi(ui_win);
         printMenu(g_win, cursor);
         flag = handleMenu(g_win, &cursor);
     }
@@ -24,28 +24,53 @@ gstate menu(WINDOW **g_win, WINDOW **ui_win)
 
 void printMenu(WINDOW **win, int cursor)
 {
+    char froggers_sprite[6][43] = {" _____                                    ",
+                                   "|  ___| __ ___   __ _  __ _  ___ _ __ ___ ",
+                                   "| |_ | '__/ _ \\ / _` |/ _` |/ _ \\ '__/ __|",
+                                   "|  _|| | | (_) | (_| | (_| |  __/ |  \\__ \\",
+                                   "|_|  |_|  \\___/ \\__, |\\__, |\\___|_|  |___/",
+                                   "                |___/ |___/               "};
     wclear(*win);
-  box(*win, ACS_VLINE, ACS_HLINE);
-  mvwprintw(*win, GSIZE/8, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
-            MSG_TO_STRING(Msg_play));
-  mvwprintw(*win, GSIZE/4, GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2,
-            MSG_TO_STRING(Msg_opts));
-  mvwprintw(*win, GSIZE/4 + GSIZE/8, GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2,
-            MSG_TO_STRING(Msg_quit));
-  switch (cursor) {
-    case Msg_play:
-      mvwaddch(*win, GSIZE/8, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2 - 2,
-               SPRITE_CURSOR);
-      break;
-    case Msg_opts:
-      mvwaddch(*win, GSIZE/4, GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2 - 2,
-               SPRITE_CURSOR);
-      break;
-    case Msg_quit:
-      mvwaddch(*win, GSIZE/4 + GSIZE/8, GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2 - 2,
-               SPRITE_CURSOR);
-      break;
-  }
+    box(*win, ACS_VLINE, ACS_HLINE);
+
+    for (int x = (GSIZE/8)*3 + 1; x < (GSIZE/8)*5 - 1; x++) {
+        mvwprintw(*win, ((GSIZE - 6)/5) + START_Y/2 , x, "%c" , '_');  // Top border
+        mvwprintw(*win, ((GSIZE/8)*3), x, "%c" , '_');  // Bottom border
+    }
+
+    // Left and right borders
+    for (int y = ((GSIZE - 6)/5) + 3; y <= ((GSIZE/8)*3) ; y++) {
+        mvwprintw(*win, y, (GSIZE/8)*3 , "%c" , '|');  // Left border
+        mvwprintw(*win, y, (GSIZE/8)*5 - 1 , "%c" ,'|');  // Right border
+    }
+
+
+    for(int i = 0; i < 6; i++)
+        mvwprintw(*win, START_Y + i, (GSIZE - PSIZE)/2, "%s", froggers_sprite[i]);
+
+    mvwprintw(*win, GSIZE/4 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
+              MSG_TO_STRING(Msg_play));
+    mvwprintw(*win, (GSIZE - 6)/5 + (STATIC_SPACE * 3)/2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2,
+              MSG_TO_STRING(Msg_opts));
+    mvwprintw(*win, (GSIZE - 6)/5 + STATIC_SPACE * 2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2,
+              MSG_TO_STRING(Msg_quit));
+
+    switch (cursor) {
+        case Msg_play:
+            mvwaddch(*win, GSIZE/4, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2 - 2,
+                     SPRITE_CURSOR);
+            break;
+        case Msg_opts:
+            mvwaddch(*win, (GSIZE - 6)/5 + (STATIC_SPACE * 3)/2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2 - 2,
+                     SPRITE_CURSOR);
+            break;
+        case Msg_quit:
+            mvwaddch(*win, (GSIZE - 6)/5 + STATIC_SPACE * 2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2 - 2,
+                     SPRITE_CURSOR);
+            break;
+    }
+
+
     wrefresh(*win);
 }
 
