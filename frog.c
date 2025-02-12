@@ -65,55 +65,43 @@ msg handleFrog(pos p, msg f)
 }
 
 void printFrog(WINDOW **g_win, msg f)
-{
+{        
     char sprite_frog[2][3]={
             "<M>",
             "/W\\"
     };
-    for(int i = 0; i < 3; i++)
-    {
+
+
+    wattron(*g_win, COLOR_PAIR(Grass));
+    for(int i = 0; i < 3; i++) {
         mvwaddch(*g_win, f.p.y - 1, f.p.x + i, sprite_frog[0][i]);
         mvwaddch(*g_win, f.p.y, f.p.x + i, sprite_frog[1][i]);
     }
+    wattroff(*g_win, COLOR_PAIR(Grass));
 }
 
 void granade(int pipefd[], int pipefd_grenade[]) {
     msg g;
     close(pipefd[0]);
-    
-    while (true) {
-        g.shoots = false;
+    fcntl(pipefd_grenade[0], F_SETFL, O_NONBLOCK);
+
+    while (1) {
         ssize_t bytes_read = read(pipefd_grenade[0], &g, sizeof(g));
-        // Check if read was successful
-        if (bytes_read != sizeof(g)) {
-            perror("Read error on projectile pipe");
-            continue;
+        if (bytes_read == sizeof(g) && g.shoots) {
+            g.id = Id_granade;
+            g.sx_x = g.p.x - 1;
+            g.p.x += strlen(SPRITE_FROG);
+
+            while (g.p.x < GSIZE || g.sx_x > 0) {
+                g.p.x++;
+                g.sx_x--;
+                write(pipefd[1], &g, sizeof(g));
+                usleep(UDELAY/3);
+            }
         }
-
-        if (!g.shoots)
-            continue;
-        g.id = Id_granade;
-        g.sx_x = g.p.x - 1;
-        g.p.x += strlen(SPRITE_FROG);
-
-        if (g.p.x >= GSIZE) 
-            g.p.x = GSIZE - 1;
-        if (g.sx_x < 0)
-            g.sx_x = 0;
-
-        while (g.p.x < GSIZE || g.sx_x > 0) {
-            g.p.x++;
-            g.sx_x--;
-
-            (void)write(pipefd[1], &g, sizeof(g));
-            usleep(UDELAY/3);
-        }
-
         usleep(UDELAY);
     }
 }
-
-
 void printGranade(WINDOW **g_win, msg g)
 {
     mvwaddch(*g_win, g.p.y, g.p.x, '>');

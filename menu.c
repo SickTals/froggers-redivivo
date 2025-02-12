@@ -15,7 +15,7 @@ gstate menu(WINDOW **g_win, WINDOW **ui_win)
     gstate flag = Menu;
 
     while(flag == Menu) {
-        printMenuUi(ui_win);
+        //printMenuUi(ui_win);
         printMenu(g_win, cursor);
         flag = handleMenu(g_win, &cursor);
     }
@@ -34,7 +34,7 @@ void printMenu(WINDOW **win, int cursor)
     box(*win, ACS_VLINE, ACS_HLINE);
 
     for (int x = (GSIZE/8)*3 + 1; x < (GSIZE/8)*5 - 1; x++) {
-        mvwprintw(*win, ((GSIZE - 6)/5) + START_Y/2 , x, "%c" , '_');  // Top border
+        mvwprintw(*win, ((GSIZE - 6)/5) + MENU_START_Y/2 , x, "%c" , '_');  // Top border
         mvwprintw(*win, ((GSIZE/8)*3), x, "%c" , '_');  // Bottom border
     }
 
@@ -46,7 +46,7 @@ void printMenu(WINDOW **win, int cursor)
 
 
     for(int i = 0; i < 6; i++)
-        mvwprintw(*win, START_Y + i, (GSIZE - PSIZE)/2, "%s", froggers_sprite[i]);
+        mvwprintw(*win, MENU_START_Y + i, (GSIZE - PSIZE)/2, "%s", froggers_sprite[i]);
 
     mvwprintw(*win, GSIZE/4 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
               MSG_TO_STRING(Msg_play));
@@ -69,8 +69,6 @@ void printMenu(WINDOW **win, int cursor)
                      SPRITE_CURSOR);
             break;
     }
-
-
     wrefresh(*win);
 }
 

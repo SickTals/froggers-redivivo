@@ -4,6 +4,7 @@
 #include <ncurses.h>
 #include <unistd.h>
 #include <string.h>
+#include <fcntl.h>
 #include "common.h"
 
 #define Y_STEP 2

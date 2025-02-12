@@ -13,7 +13,7 @@ enum MenuMsg {
   Msg_quit,
 };
 
-#define START_Y 4
+#define MENU_START_Y 4
 #define STATIC_SPACE 5
 #define MSG_TO_STRING(msg) \
     ((msg) == Msg_play ? "PLAY"    : \

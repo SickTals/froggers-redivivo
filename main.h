@@ -15,17 +15,26 @@
 #include "ui.h"
 #include "frog.h"
 #include "river.h"
+#include "dens.h"
+
+#define WIN_START_Y ((LINES - GSIZE / 2) / 2)
+#define WIN_START_X (((COLS - GSIZE) / 2) - UISIZE / 2)
+#define PWIN_START_Y ((LINES - PSIZE / 3) / 2)
+#define PWIN_START_X (((COLS - PSIZE) - UISIZE) / 2)
+
+#define CENTER_X (GSIZE / 2)
+#define SIDEWALK_Y (GSIZE/2 - 2)
 
 #define NTASKS 7
-#define NDENS 5
+
+
+
 
 void init_screen(WINDOW **g_win, WINDOW **ui_win);
 void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], int pipefd_grenade[], rvr r);
 void end_screen(WINDOW **g_win, WINDOW **ui_win);
 bool isDrawning(pos f, msg *c, int nspeeds);
-bool den(bool dens[5], pos frog_pos);
-void printDens(WINDOW **win, bool dens[NDENS]);
-gstate collisions(msg msgs[], bool dens[NDENS], int proj_active);
+gstate collisions(msg msgs[], bool dens[NDENS], int pipefd_projectiles[], int pipefd_grenade[], int proj_active);
 gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDENS]);
 
 #endif
