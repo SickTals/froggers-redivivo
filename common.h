@@ -23,7 +23,11 @@ enum Keys {
     Key_right = 'd',
     Key_shoot = ' '
 };
-
+enum Colors_sprite{
+    Grass = 1,
+    River,
+    Dens
+};
 typedef enum GameStatus {
     Exit,
     Game,

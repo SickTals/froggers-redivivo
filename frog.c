@@ -66,8 +66,15 @@ msg handleFrog(pos p, msg f)
 
 void printFrog(WINDOW **g_win, msg f)
 {
-    mvwprintw(*g_win, f.p.y, f.p.x, SPRITE_FROG);
-    mvwprintw(*g_win, f.p.y - 1, f.p.x, SPRITE_FROG);
+    char sprite_frog[2][3]={
+            "<M>",
+            "/W\\"
+    };
+    for(int i = 0; i < 3; i++)
+    {
+        mvwaddch(*g_win, f.p.y - 1, f.p.x + i, sprite_frog[0][i]);
+        mvwaddch(*g_win, f.p.y, f.p.x + i, sprite_frog[1][i]);
+    }
 }
 
 void granade(int pipefd[], int pipefd_grenade[]) {

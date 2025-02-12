@@ -221,6 +221,9 @@ gstate collisions(msg msgs[], bool dens[NDENS], int proj_active)
 
 gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDENS])
 {
+    start_color();
+    init_pair(Grass, COLOR_BLACK, COLOR_GREEN);
+
     WINDOW *p_win;
     gstate flag = Game;
     int pipefd[2];
@@ -258,12 +261,18 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
     close(pipefd_grenade[0]);
 
     while (flag == Game) {
+
+
         wclear(*g_win);
         wclear(*ui_win);
         printUi(ui_win, msgs[Id_timer], lives, score);
         printDens(g_win, dens);
         printCrocs(g_win, &msgs[Id_croc_slow], NSPEEDS);
+
+        wattron(*g_win, COLOR_PAIR(Grass));
         printFrog(g_win, msgs[Id_frog]);
+        wattroff(*g_win, COLOR_PAIR(Grass));
+
         printCrocProjectile(g_win, msgs[Id_croc_projectile]);
         printGranade(g_win, msgs[Id_granade]);
         box(*g_win, ACS_VLINE, ACS_HLINE);

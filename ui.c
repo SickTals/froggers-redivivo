@@ -79,7 +79,7 @@ void timer(int pipefd[])
 void printUi(WINDOW **win, msg t, int lives, int score)
 {
     char fscore[SIZE_FSCORE + 1];
-    
+
     snprintf(fscore, sizeof(fscore), "%016d", score);
     mvwprintw(*win, TIMER_Y - 1, START_X, "TIME");
     mvwprintw(*win, TIMER_Y, CENTER_X, "%d", t.objs[Id_timer].y);
