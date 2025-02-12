@@ -1,7 +1,7 @@
 #ifndef COMMON
 #define COMMON
 
-#define GSIZE 56 //16 fiume, margini 2*2, tane 6, 16x16 * 3.5
+#define GSIZE 56 //heigh GSIZE/2: 1 margine alto, 2-8 prato tane, 9-25 fiume a 2 a 2, 26-27 pratino rana
 #define PSIZE 42
 #define UISIZE 8
 #define UDELAY 500000
@@ -25,9 +25,12 @@ enum Keys {
 };
 
 enum Colors_sprite{
-    Grass = 1,
+    Grass_Frog = 1,
+    Crocs,
     River,
-    Dens
+    Dens,
+    Proj,
+    Gren
 };
 
 typedef enum GameStatus {

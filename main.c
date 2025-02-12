@@ -1,5 +1,4 @@
 #include "main.h"
-#include "common.h"
 
 int main() 
 {
@@ -56,8 +55,10 @@ void init_screen(WINDOW **g_win, WINDOW **ui_win)
     noecho();
     curs_set(false);
     cbreak();
-    *g_win = newwin(GSIZE/2, GSIZE, WIN_START_Y, WIN_START_X);
-    *ui_win = newwin(GSIZE/2, UISIZE, WIN_START_Y, WIN_START_X + GSIZE);
+    *g_win = newwin(GSIZE/2, GSIZE,
+                    (LINES - GSIZE/2)/2, ((COLS - GSIZE)/2) - UISIZE/2);
+    *ui_win = newwin(GSIZE/2, UISIZE,
+                     (LINES - GSIZE/2)/2, ((COLS - GSIZE)/2) + GSIZE - UISIZE/2);
     nodelay(*g_win, false);
     keypad(*g_win, true);
     box(*g_win, ACS_VLINE, ACS_HLINE);
@@ -120,7 +121,7 @@ void end_screen(WINDOW **g_win, WINDOW **ui_win)
 
 bool isDrawning(pos f, msg *c, int nspeeds)
 {
-    if (f.y == SIDEWALK_Y || f.y <= SIDEWALK_Y - (NLANES * Y_STEP))
+    if (f.y >= SIDEWALK_Y || f.y <= SIDEWALK_Y - BOX_BORDER * 2 - (NLANES * Y_STEP))
         return false;
     for (int k = 0; k < nspeeds; k++) {
         for (int i = 0; i < CROC_CAP; i++) {
@@ -146,9 +147,10 @@ bool isShot(int proj_active, pos f, msg proj)
             f.y != proj.objs[i].y) {
             continue;
         }
+
         if (f.x == proj.objs[i].x ||
-        (f.x - 1) == proj.objs[i].x ||
-        (f.x + 1) == proj.objs[i].x) {
+        (f.x + 1) == proj.objs[i].x ||
+        (f.x + 2) == proj.objs[i].x) {
             return true;
         }
     }
@@ -166,10 +168,33 @@ gstate hasWon(bool dens[NDENS])
     return false;
 }
 
+void init_bckg(WINDOW **win)
+{
+    int y_g = GSIZE/2 - 1;
+    int start_y_d = GSIZE/2 - 2 - 2 - 16;
+
+    wattron(*win, COLOR_PAIR(Grass_Frog));
+    for(int i = 0; i < GSIZE; i++) {
+        mvwaddch(*win, y_g - 1, i, ' ');
+        mvwaddch(*win, y_g - 2, i, ' ');
+    }
+
+    for(int j = 1; j <= start_y_d; j++)
+        for(int i = 0; i < GSIZE; i++)
+            mvwaddch(*win, j, i, ' ');
+    wattroff(*win, COLOR_PAIR(Grass_Frog));
+
+    wattron(*win, COLOR_PAIR(River));
+    for(int j = start_y_d + 1; j <= y_g - 3; j++)
+        for(int i = 1; i < GSIZE; i++)
+            mvwaddch(*win, j, i, ' ');
+    wattroff(*win, COLOR_PAIR(River));
+}
+
 gstate collisions(msg msgs[], bool dens[NDENS], int pipefd_projectiles[], int pipefd_grenade[], int proj_active)
 {
-            close(pipefd_grenade[0]);
-            close(pipefd_projectiles[0]);
+    close(pipefd_grenade[0]);
+    close(pipefd_projectiles[0]);
     if (isDrawning(msgs[Id_frog].p, &msgs[Id_croc_slow], NSPEEDS) ||
         isShot(proj_active, msgs[Id_frog].p, msgs[Id_croc_projectile])) {
         return Dies;
@@ -194,13 +219,13 @@ int sendProjectileShot(int pipefd[], obj c, int n)
 {
     // Create a new message specifically for the projectile
     msg projectile_msg;
-    
+
     // Copy the shooting crocodile's data
     projectile_msg.id = Id_croc_projectile;
     projectile_msg.shoots = true;
     projectile_msg.objs[0] = c;
     projectile_msg.objs[0].shoots = true;
-    
+
     // Send to projectile process
     write(pipefd[1], &projectile_msg, sizeof(msg));
     return n + 1;
@@ -219,9 +244,13 @@ int updateProjectileCount(obj p[])
 
 gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDENS])
 {
-
     start_color();
-    init_pair(Grass, COLOR_BLACK, COLOR_GREEN);
+    init_pair(Grass_Frog, COLOR_WHITE, COLOR_GREEN);
+    init_pair(River, COLOR_WHITE, COLOR_CYAN);
+    init_pair(Crocs, COLOR_BLACK, COLOR_BLUE);
+    init_pair(Dens, COLOR_MAGENTA, COLOR_WHITE);
+    init_pair(Proj, COLOR_YELLOW, COLOR_BLUE);
+    init_pair(Gren, COLOR_WHITE, COLOR_GREEN);
 
     WINDOW *p_win;
     gstate flag = Game;
@@ -246,9 +275,8 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
         if (pids[i] < 0) {
             perror("Fork fail");
             exit(EXIT_FAILURE);
-        } else if (pids[i] == 0) {
+        } else if (pids[i] == 0)
             child_task(i, g_win, pipefd, pipefd_projectiles, pipefd_grenade, r);
-        }
     }
 
     msg msgs[NTASKS + 1];
@@ -260,14 +288,33 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
     close(pipefd_grenade[0]);
 
     while (flag == Game) {
+
+
         wclear(*g_win);
         wclear(*ui_win);
         printUi(ui_win, msgs[Id_timer], lives, score);
+        init_bckg(g_win);
+
+        wattron(*g_win, COLOR_PAIR(Dens));
         printDens(g_win, dens);
+        wattroff(*g_win, COLOR_PAIR(Dens));
+
+        wattron(*g_win, COLOR_PAIR(Crocs));
         printCrocs(g_win, &msgs[Id_croc_slow], NSPEEDS);
+        wattroff(*g_win, COLOR_PAIR(Crocs));
+
+        wattron(*g_win, COLOR_PAIR(Grass_Frog));
         printFrog(g_win, msgs[Id_frog]);
+        wattroff(*g_win, COLOR_PAIR(Grass_Frog));
+
+        wattron(*g_win, COLOR_PAIR(Proj));
         printCrocProjectile(g_win, msgs[Id_croc_projectile]);
+        wattroff(*g_win, COLOR_PAIR(Proj));
+
+        wattron(*g_win, COLOR_PAIR(Gren));
         printGranade(g_win, msgs[Id_granade]);
+        wattroff(*g_win, COLOR_PAIR(Gren));
+
         box(*g_win, ACS_VLINE, ACS_HLINE);
         box(*ui_win, ACS_VLINE, ACS_HLINE);
         wrefresh(*g_win);
@@ -295,22 +342,22 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
                 // Check shooting crocodiles
                 for (int i = 0; i < CROC_CAP; i++) {
                     // Only proceed if this croc exists and is shooting
-                    if (msgs[NTASKS].objs[i].x != INVALID_CROC && 
-                        msgs[NTASKS].objs[i].y != INVALID_CROC && 
+                    if (msgs[NTASKS].objs[i].x != INVALID_CROC &&
+                        msgs[NTASKS].objs[i].y != INVALID_CROC &&
                         msgs[NTASKS].objs[i].shoots &&
                         croc_projectiles_active < CROC_CAP) {
-                            // Create a new message specifically for the projectile
-                            msg projectile_msg;
-                            
-                            // Copy the shooting crocodile's data
-                            projectile_msg.id = Id_croc_projectile;
-                            projectile_msg.shoots = true;
-                            projectile_msg.objs[0] = msgs[NTASKS].objs[i];
-                            projectile_msg.objs[0].shoots = true;
-                            
-                            // Send to projectile process
-                            write(pipefd_projectiles[1], &projectile_msg, sizeof(msg));
-                            croc_projectiles_active++;
+                        // Create a new message specifically for the projectile
+                        msg projectile_msg;
+
+                        // Copy the shooting crocodile's data
+                        projectile_msg.id = Id_croc_projectile;
+                        projectile_msg.shoots = true;
+                        projectile_msg.objs[0] = msgs[NTASKS].objs[i];
+                        projectile_msg.objs[0].shoots = true;
+
+                        // Send to projectile process
+                        write(pipefd_projectiles[1], &projectile_msg, sizeof(msg));
+                        croc_projectiles_active++;
                     }
                 }
                 break;
@@ -321,7 +368,7 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
                 break;
             case Id_timer:
                 msgs[Id_timer] = msgs[NTASKS];
-                break;                
+                break;
             case Id_pause:
                 for (int i = 0; i < NTASKS; i++)
                     kill(pids[i], SIGSTOP);
@@ -332,17 +379,25 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
                 break;
             case Id_quit:
                 flag = Menu;
-                for (int i = 0; i < NDENS; i++)     
+                for (int i = 0; i < NDENS; i++)
                     dens[i] = false;
                 break;
         }
     }
 
+    /*
+    msgs[Id_granade].p.x = GSIZE;  // Move grenade off screen
+    msgs[Id_granade].sx_x = 0;     // Reset the left side of grenade
+    grenade_active = false;         // Reset the active flag
+    */
+
+    // this // this
     wclear(*g_win);
     wclear(*ui_win);
     box(*ui_win, ACS_VLINE, ACS_HLINE);
     wrefresh(*g_win);
     wrefresh(*ui_win);
+
     close(pipefd[0]);
     for (int i = 0; i < NTASKS; i++)
         kill(pids[i], SIGKILL);

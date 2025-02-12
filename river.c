@@ -196,9 +196,9 @@ void printCrocs(WINDOW **g_win, msg *c, int nspeeds)
                 mvwaddch(*g_win, c[s].objs[j].y, c[s].objs[j].x + i, sprite_croc[1][i]);
             }
         }
-        
     }
 }
+
 
 void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
     msg projectiles = {
@@ -278,13 +278,12 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
     }
 }
 
-
 void printCrocProjectile(WINDOW **g_win, msg p)
 {
     for (int i = 0; i < CROC_CAP; i++) {
         if (p.objs[i].x == INVALID_CROC || p.objs[i].y == INVALID_CROC)
             continue;
         // Print projectile at the same level as crocodiles but with distinct character
-        mvwaddch(*g_win, p.objs[i].y, p.objs[i].x, SPRITE_PROJECTILE);
+        mvwaddch(*g_win, (p.objs[i].y - 1), p.objs[i].x, SPRITE_PROJECTILE);
     }
 }

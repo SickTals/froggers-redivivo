@@ -15,7 +15,7 @@ gstate menu(WINDOW **g_win, WINDOW **ui_win)
     gstate flag = Menu;
 
     while(flag == Menu) {
-        //printMenuUi(ui_win);
+        printMenuUi(ui_win);
         printMenu(g_win, cursor);
         flag = handleMenu(g_win, &cursor);
     }
@@ -146,6 +146,6 @@ void printPauseMenu(WINDOW **win, char sprite[5][33])
 {
     box(*win, ACS_VLINE, ACS_HLINE);
     for(int i = 0; i < 5; i++)
-        mvwprintw(*win, 4 + i, 7, "%s", sprite[i]); // Update row to 4 + i
+        mvwprintw(*win, MENU_START_Y + i, GSIZE/8, "%s", sprite[i]); // Update row to 4 + i
     wrefresh(*win); // Ensure the window is refreshed
 }

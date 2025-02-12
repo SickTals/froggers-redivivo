@@ -24,17 +24,23 @@
 
 #define CENTER_X (GSIZE / 2)
 #define SIDEWALK_Y (GSIZE/2 - 2)
+#define BOX_BORDER 1
 
 #define NTASKS 7
 
 
-
-
 void init_screen(WINDOW **g_win, WINDOW **ui_win);
+void initObjects(msg msgs[]);
 void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], int pipefd_grenade[], rvr r);
 void end_screen(WINDOW **g_win, WINDOW **ui_win);
 bool isDrawning(pos f, msg *c, int nspeeds);
+bool isShot(int proj_active, pos f, msg proj);
+gstate hasWon(bool dens[NDENS]);
+void init_bckg(WINDOW **win);
 gstate collisions(msg msgs[], bool dens[NDENS], int pipefd_projectiles[], int pipefd_grenade[], int proj_active);
+bool sendGrenadeShot(int pipefd[], msg f);
+int sendProjectileShot(int pipefd[], obj c, int n);
+int updateProjectileCount(obj p[]);
 gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDENS]);
 
 #endif

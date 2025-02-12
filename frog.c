@@ -1,5 +1,4 @@
 #include "frog.h"
-#include "common.h"
 
 void frog(WINDOW **win, int pipefd[]){
     close(pipefd[0]);
@@ -65,19 +64,15 @@ msg handleFrog(pos p, msg f)
 }
 
 void printFrog(WINDOW **g_win, msg f)
-{        
+{
     char sprite_frog[2][3]={
             "<M>",
             "/W\\"
     };
-
-
-    wattron(*g_win, COLOR_PAIR(Grass));
-    for(int i = 0; i < 3; i++) {
+    for(int i = 0; i < 3; i++){
         mvwaddch(*g_win, f.p.y - 1, f.p.x + i, sprite_frog[0][i]);
         mvwaddch(*g_win, f.p.y, f.p.x + i, sprite_frog[1][i]);
     }
-    wattroff(*g_win, COLOR_PAIR(Grass));
 }
 
 void granade(int pipefd[], int pipefd_grenade[]) {
@@ -102,6 +97,7 @@ void granade(int pipefd[], int pipefd_grenade[]) {
         usleep(UDELAY);
     }
 }
+
 void printGranade(WINDOW **g_win, msg g)
 {
     mvwaddch(*g_win, g.p.y, g.p.x, '>');

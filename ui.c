@@ -80,12 +80,12 @@ void printUi(WINDOW **win, msg t, int lives, int score)
 {
     char fscore[SIZE_FSCORE + 1];
     snprintf(fscore, sizeof(fscore), "%016d", score);
-    mvwprintw(*win, TIMER_Y - 1, START_X + 1, "TIME");
+    mvwprintw(*win, TIMER_Y - 1, START_X, "TIME");
     mvwprintw(*win, TIMER_Y, UI_CENTER_X, "%d", t.objs[Id_timer].y);
-    mvwprintw(*win, LIVES_Y - 1, START_X + 1, "LIVE");
+    mvwprintw(*win, LIVES_Y - 1, START_X, "LIVE");
+    mvwprintw(*win, SCORE_Y - 1, (START_X - 1), "POINTS");
     for (int i = 0; i < lives; i++)
         mvwprintw(*win, LIVES_Y + i, UI_CENTER_X - (i % 2), "%s", SPRITE_FROG);
-    mvwprintw(*win, SCORE_Y - 1, START_X, "POINTS");
     for (int i = SIZE_FSCORE; i >= 0; i--)
         mvwprintw(*win, SCORE_Y + i, UI_CENTER_X + (i % 2), "%c\n", fscore[i]);
 }

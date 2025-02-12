@@ -7,7 +7,7 @@
 
 #define TIME 60
 #define SIZE_FSCORE 16
-#define START_X 1
+#define START_X 2
 #define TIMER_Y 3
 #define UI_CENTER_X 3
 #define LIVES_Y 6
