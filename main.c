@@ -12,9 +12,21 @@ int main()
     srand(time(NULL));
     init_screen(&g_win, &ui_win);
 
+    start_color();
+    init_color(COLOR_BROWN, 150, 75, 0);
+
+    init_pair(Grass_Frog, COLOR_WHITE, COLOR_GREEN);
+    init_pair(River, COLOR_WHITE, COLOR_CYAN);
+    init_pair(Crocs, COLOR_BLACK, COLOR_BLUE);
+    init_pair(Dens, COLOR_MAGENTA, COLOR_WHITE);
+    init_pair(Proj, COLOR_YELLOW, COLOR_BLUE);
+    init_pair(Gren, COLOR_WHITE, COLOR_GREEN);
+    init_pair(Ui, COLOR_YELLOW, COLOR_BROWN);
+
     while (flag != Exit) {
         if (lives < 0)
-            flag = Exit;
+            flag = Menu;
+
         switch (flag) {
             case Dies:
                 lives--;
@@ -27,7 +39,11 @@ int main()
             case Menu:
                 lives = 3;
                 score = 0;
+                wattron(g_win, COLOR_PAIR(Ui));
+                wattron(ui_win, COLOR_PAIR(Ui));
                 flag = menu(&g_win, &ui_win);
+                wattroff(ui_win, COLOR_PAIR(Ui));
+                wattroff(g_win, COLOR_PAIR(Ui));
                 break;
             case Exit:
                 flag = Exit;
@@ -41,7 +57,7 @@ int main()
         }
     }
 
-    end_screen(&g_win, &ui_win);
+    end_screen(&g_win, &ui_win, dens);
     return 0;
 }
 
@@ -112,8 +128,12 @@ void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], i
     }
 }
 
-void end_screen(WINDOW **g_win, WINDOW **ui_win)
+void end_screen(WINDOW **g_win, WINDOW **ui_win, bool dens[NDENS])
 {
+   /*( char end_sprite[][]
+
+    if(hasWon(dens)))*/
+
     delwin(*g_win);
     delwin(*ui_win);
     endwin();
@@ -244,14 +264,6 @@ int updateProjectileCount(obj p[])
 
 gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDENS])
 {
-    start_color();
-    init_pair(Grass_Frog, COLOR_WHITE, COLOR_GREEN);
-    init_pair(River, COLOR_WHITE, COLOR_CYAN);
-    init_pair(Crocs, COLOR_BLACK, COLOR_BLUE);
-    init_pair(Dens, COLOR_MAGENTA, COLOR_WHITE);
-    init_pair(Proj, COLOR_YELLOW, COLOR_BLUE);
-    init_pair(Gren, COLOR_WHITE, COLOR_GREEN);
-
     WINDOW *p_win;
     gstate flag = Game;
     int pipefd[2];
@@ -373,7 +385,9 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
                 for (int i = 0; i < NTASKS; i++)
                     kill(pids[i], SIGSTOP);
                 flushinp();
+                wattron(p_win, COLOR_PAIR(Ui));
                 PauseMenu(&p_win);
+                wattroff(p_win, COLOR_PAIR(Ui));
                 for (int i = 0; i < NTASKS; i++)
                     kill(pids[i], SIGCONT);
                 break;

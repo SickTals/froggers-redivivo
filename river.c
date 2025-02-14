@@ -280,10 +280,12 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
 
 void printCrocProjectile(WINDOW **g_win, msg p)
 {
+    char sprite_proj[2]={'%','#'};
     for (int i = 0; i < CROC_CAP; i++) {
         if (p.objs[i].x == INVALID_CROC || p.objs[i].y == INVALID_CROC)
             continue;
         // Print projectile at the same level as crocodiles but with distinct character
-        mvwaddch(*g_win, (p.objs[i].y - 1), p.objs[i].x, SPRITE_PROJECTILE);
+        mvwaddch(*g_win, p.objs[i].y - 1, p.objs[i].x, sprite_proj[0]);
+        mvwaddch(*g_win, p.objs[i].y, p.objs[i].x, sprite_proj[1]);
     }
 }

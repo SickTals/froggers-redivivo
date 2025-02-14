@@ -7,8 +7,9 @@
 #define UDELAY 500000
 
 #define SPRITE_CURSOR '>'
-#define SPRITE_PROJECTILE '*'
 #define SPRITE_FROG ">M<"
+
+#define COLOR_BROWN 70
 
 #define NLANES 8
 #define CROC_CAP NLANES*NLANES
@@ -30,7 +31,8 @@ enum Colors_sprite{
     River,
     Dens,
     Proj,
-    Gren
+    Gren,
+    Ui
 };
 
 typedef enum GameStatus {

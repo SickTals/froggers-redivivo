@@ -100,6 +100,8 @@ void granade(int pipefd[], int pipefd_grenade[]) {
 
 void printGranade(WINDOW **g_win, msg g)
 {
-    mvwaddch(*g_win, g.p.y, g.p.x, '>');
-    mvwaddch(*g_win, g.p.y, g.sx_x, '<');
+    mvwaddch(*g_win, g.p.y - 1, g.p.x, '\\');
+    mvwaddch(*g_win, g.p.y, g.p.x, '/');
+    mvwaddch(*g_win, g.p.y - 1 , g.sx_x, '/');
+    mvwaddch(*g_win, g.p.y, g.sx_x, '\\');
 }

@@ -32,7 +32,7 @@
 void init_screen(WINDOW **g_win, WINDOW **ui_win);
 void initObjects(msg msgs[]);
 void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], int pipefd_grenade[], rvr r);
-void end_screen(WINDOW **g_win, WINDOW **ui_win);
+void end_screen(WINDOW **g_win, WINDOW **ui_win, bool dens[NDENS]);
 bool isDrawning(pos f, msg *c, int nspeeds);
 bool isShot(int proj_active, pos f, msg proj);
 gstate hasWon(bool dens[NDENS]);

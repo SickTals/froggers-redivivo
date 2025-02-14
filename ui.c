@@ -33,7 +33,12 @@ void printMenuUi(WINDOW **win)
     };
 
     wclear(*win);
+    for(int j = 1; j < UISIZE; j++)
+        for (int i = 1; i < GSIZE/2 - 1; i++)
+            mvwaddch(*win, j, i, ' ');
     box(*win, ACS_VLINE, ACS_HLINE);
+
+
     for(int i = 0, j = 0, flag = 1 ; i < 24; i++) {
         if (j == 4) {
             j = 1;
@@ -79,6 +84,11 @@ void timer(int pipefd[])
 void printUi(WINDOW **win, msg t, int lives, int score)
 {
     char fscore[SIZE_FSCORE + 1];
+
+    for(int j = 1; j < UISIZE - 1; j++)
+        for (int i = 1; i < ((LINES - GSIZE/2)/2 - 1); i++)
+            mvwaddch(*win, j, i, ' ');
+
     snprintf(fscore, sizeof(fscore), "%016d", score);
     mvwprintw(*win, TIMER_Y - 1, START_X, "TIME");
     mvwprintw(*win, TIMER_Y, UI_CENTER_X, "%d", t.objs[Id_timer].y);

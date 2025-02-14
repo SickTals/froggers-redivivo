@@ -10,14 +10,14 @@
 #define DEN_START_X(x) (DEN_HEIGHT + x + ((GSIZE - 6) / NDENS) * x)
 
 #define SPRITE_DEN_OPEN \
-    "SP\"\"YS",           \
-    "S    S",            \
-    "S.  .S"
+    "\\/][\\/",           \
+    "| () |",            \
+    " \\__/ "
 
 #define SPRITE_DEN_CLOSE \
-    "SP__YS",            \
-    "SOOOOS",            \
-    "S.\"\".S"
+    "\\/__\\/",            \
+    "|=[]=|",            \
+    " \\][/"
 
 #define DEN_WIDTH 7
 #define DEN_HEIGHT 3

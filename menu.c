@@ -24,6 +24,7 @@ gstate menu(WINDOW **g_win, WINDOW **ui_win)
 
 void printMenu(WINDOW **win, int cursor)
 {
+
     char froggers_sprite[6][43] = {" _____                                    ",
                                    "|  ___| __ ___   __ _  __ _  ___ _ __ ___ ",
                                    "| |_ | '__/ _ \\ / _` |/ _` |/ _ \\ '__/ __|",
@@ -32,6 +33,10 @@ void printMenu(WINDOW **win, int cursor)
                                    "                |___/ |___/               "};
     wclear(*win);
     box(*win, ACS_VLINE, ACS_HLINE);
+
+    for(int j = 1; j < GSIZE/2 - 1; j++)
+        for (int i = 1; i < GSIZE - 1; i++)
+            mvwaddch(*win, j, i, ' ');
 
     for (int x = (GSIZE/8)*3 + 1; x < (GSIZE/8)*5 - 1; x++) {
         mvwprintw(*win, ((GSIZE - 6)/5) + MENU_START_Y/2 , x, "%c" , '_');  // Top border
@@ -145,7 +150,11 @@ void PauseMenu(WINDOW **p_win)
 void printPauseMenu(WINDOW **win, char sprite[5][33])
 {
     box(*win, ACS_VLINE, ACS_HLINE);
+
+    for(int j = 1; j < PSIZE/3 - 1; j++)
+        for (int i = 1; i < PSIZE - 1; i++)
+            mvwaddch(*win, j, i, ' ');
+
     for(int i = 0; i < 5; i++)
-        mvwprintw(*win, MENU_START_Y + i, GSIZE/8, "%s", sprite[i]); // Update row to 4 + i
-    wrefresh(*win); // Ensure the window is refreshed
+        mvwprintw(*win, MENU_START_Y + i, PSIZE/6, "%s", sprite[i]); // Update row to 4 + i // Ensure the window is refreshed
 }
