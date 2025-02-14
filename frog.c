@@ -1,14 +1,15 @@
 #include "frog.h"
+#include "river.h"
 
 void frog(WINDOW **win, int pipefd[]){
     close(pipefd[0]);
     char user_input;
     msg msg_frog;
-    msg_frog.shoots = false;
     while(true){ // Ciclo infinito chiuso dal padre
         msg_frog.id = Id_frog;
         msg_frog.p.y = 0;
         msg_frog.p.x = 0;
+        msg_frog.shoots = false;
         user_input = wgetch(*win);
         flushinp();
         switch(user_input){
@@ -36,7 +37,6 @@ void frog(WINDOW **win, int pipefd[]){
         }
         // Scrittura su pipe della posizione dell'oggetto
         (void)write(pipefd[1], &msg_frog, sizeof(msg_frog));
-        msg_frog.shoots = false;
     }
 }
 
@@ -81,21 +81,31 @@ void printFrog(WINDOW **g_win, msg f)
 void granade(int pipefd[], int pipefd_grenade[]) {
     msg g;
     close(pipefd[0]);
-    fcntl(pipefd_grenade[0], F_SETFL, O_NONBLOCK);
 
-    while (1) {
+    int flags = fcntl(pipefd_grenade[0], F_GETFL, 0);
+    fcntl(pipefd_grenade[0], F_SETFL, flags | O_NONBLOCK);
+
+    while (true) {
         ssize_t bytes_read = read(pipefd_grenade[0], &g, sizeof(g));
-        if (bytes_read == sizeof(g) && g.shoots) {
-            g.id = Id_granade;
-            g.sx_x = g.p.x - 1;
-            g.p.x += strlen(SPRITE_FROG);
+        if (bytes_read != sizeof(g) || !(g.shoots))
+            continue;
+        g.id = Id_granade;
+        g.sx_x = g.p.x - 1;
+        g.p.x += strlen(SPRITE_FROG);
 
-            while (g.p.x < GSIZE || g.sx_x > 0) {
-                g.p.x++;
-                g.sx_x--;
-                write(pipefd[1], &g, sizeof(g));
-                usleep(UDELAY/3);
+        while (g.p.x < GSIZE || g.sx_x > 0) {
+            msg tmp;
+            ssize_t n = read(pipefd_grenade[0], &tmp, sizeof(tmp));
+            if (n == sizeof(tmp)) {
+                if (tmp.sx_x == INVALID_CROC)
+                    g.sx_x = 0;
+                if (tmp.p.x == INVALID_CROC)
+                    g.p.x = GSIZE;
             }
+            g.p.x++;
+            g.sx_x--;
+            write(pipefd[1], &g, sizeof(g));
+            usleep(UDELAY/3);
         }
         usleep(UDELAY);
     }

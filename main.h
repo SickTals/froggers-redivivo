@@ -37,7 +37,7 @@ bool isDrawning(pos f, msg *c, int nspeeds);
 bool isShot(int proj_active, pos f, msg proj);
 gstate hasWon(bool dens[NDENS]);
 void init_bckg(WINDOW **win);
-gstate collisions(msg msgs[], bool dens[NDENS], int pipefd_projectiles[], int pipefd_grenade[], int proj_active);
+gstate collisions(msg msgs[], bool dens[NDENS], bool isRight, int pipefd_projectiles[], int pipefd_grenade[], int proj_active);
 bool sendGrenadeShot(int pipefd[], msg f);
 int sendProjectileShot(int pipefd[], obj c, int n);
 int updateProjectileCount(obj p[]);

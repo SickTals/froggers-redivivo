@@ -217,32 +217,39 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
     close(pipefd[0]);
     
     while (true) {
-        // Handle new shooting crocodiles
-        msg tmp;
+        msg tmp = { .sx_x = 0 };
         ssize_t n = read(pipefd_projectiles[0], &tmp, sizeof(msg));
-        if (n == sizeof(msg) && tmp.shoots) {
-            for (int i = 0; i < CROC_CAP; i++) {
-                if (!tmp.objs[i].shoots && tmp.objs[i].x == INVALID_CROC)
-                    continue;
-                    
-                // Find empty slot for new projectile
-                for (int j = 0; j < CROC_CAP; j++) {
-                    if (projectiles.objs[j].x != INVALID_CROC)
+        if (n == sizeof(msg)) {
+            // tentativo di eliminare i proiettili colpiti
+            if (tmp.sx_x == INVALID_CROC) {
+                projectiles.objs[tmp.p.y] = invalidateCrocodile(projectiles.objs[tmp.p.y]);
+            }
+
+            // Handle new shooting crocodiles
+            if (tmp.shoots) {
+                for (int i = 0; i < CROC_CAP; i++) {
+                    if (!tmp.objs[i].shoots || tmp.objs[i].x == INVALID_CROC)
                         continue;
                         
-                    int lane = (GSIZE/2 - 2 - tmp.objs[i].y - 1) / 2;
-                    if (tmp.objs[i].y == INVALID_CROC ||
-                        lane < 0 ||
-                        lane >= NLANES) {
+                    // Find empty slot for new projectile
+                    for (int j = 0; j < CROC_CAP; j++) {
+                        if (projectiles.objs[j].x != INVALID_CROC)
+                            continue;
+                            
+                        int lane = (GSIZE/2 - 2 - tmp.objs[i].y - 1) / 2;
+                        if (tmp.objs[i].y == INVALID_CROC ||
+                            lane < 0 ||
+                            lane >= NLANES) {
+                            break;
+                        }
+                        bool moveRight = ((int)isRight + lane) % 2 == 0;
+                        
+                        projectiles.objs[j].y = tmp.objs[i].y;
+                        projectiles.objs[j].x = moveRight ? 
+                            tmp.objs[i].x + SIZE_CROC - 1 : tmp.objs[i].x;
+                        projectiles.objs[j].shoots = true;
                         break;
                     }
-                    bool moveRight = ((int)isRight + lane) % 2 == 0;
-                    
-                    projectiles.objs[j].y = tmp.objs[i].y;
-                    projectiles.objs[j].x = moveRight ? 
-                        tmp.objs[i].x + SIZE_CROC - 1 : tmp.objs[i].x;
-                    projectiles.objs[j].shoots = true;
-                    break;
                 }
             }
         } else if (n == -1 && errno != EAGAIN) {
