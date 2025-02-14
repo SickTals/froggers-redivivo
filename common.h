@@ -32,7 +32,9 @@ enum Colors_sprite{
     Dens,
     Proj,
     Gren,
-    Ui
+    Ui,
+    Lives,
+    Evil_Ui
 };
 
 typedef enum GameStatus {

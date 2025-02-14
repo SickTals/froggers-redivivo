@@ -15,8 +15,12 @@ gstate menu(WINDOW **g_win, WINDOW **ui_win)
     gstate flag = Menu;
 
     while(flag == Menu) {
+        wattron(*g_win, COLOR_PAIR(Ui));
+        wattron(*ui_win, COLOR_PAIR(Ui));
         printMenuUi(ui_win);
         printMenu(g_win, cursor);
+        wattroff(*ui_win, COLOR_PAIR(Ui));
+        wattroff(*g_win, COLOR_PAIR(Ui));
         flag = handleMenu(g_win, &cursor);
     }
     return flag;
@@ -49,31 +53,42 @@ void printMenu(WINDOW **win, int cursor)
         mvwprintw(*win, y, (GSIZE/8)*5 - 1 , "%c" ,'|');  // Right border
     }
 
-
+    wattron(*win, COLOR_PAIR(Evil_Ui));
     for(int i = 0; i < 6; i++)
         mvwprintw(*win, MENU_START_Y + i, (GSIZE - PSIZE)/2, "%s", froggers_sprite[i]);
+    wattroff(*win, COLOR_PAIR(Evil_Ui));
 
+    wattron(*win, COLOR_PAIR(Ui));
     mvwprintw(*win, GSIZE/4 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
               MSG_TO_STRING(Msg_play));
     mvwprintw(*win, (GSIZE - 6)/5 + (STATIC_SPACE * 3)/2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2,
               MSG_TO_STRING(Msg_opts));
     mvwprintw(*win, (GSIZE - 6)/5 + STATIC_SPACE * 2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2,
               MSG_TO_STRING(Msg_quit));
+    wattron(*win, COLOR_PAIR(Ui));
 
+    wattron(*win, COLOR_PAIR(Evil_Ui));
     switch (cursor) {
         case Msg_play:
             mvwaddch(*win, GSIZE/4, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2 - 2,
                      SPRITE_CURSOR);
+            mvwprintw(*win, GSIZE/4 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
+                      MSG_TO_STRING(Msg_play));
             break;
         case Msg_opts:
             mvwaddch(*win, (GSIZE - 6)/5 + (STATIC_SPACE * 3)/2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2 - 2,
                      SPRITE_CURSOR);
+            mvwprintw(*win, (GSIZE - 6)/5 + (STATIC_SPACE * 3)/2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2,
+                      MSG_TO_STRING(Msg_opts));
             break;
         case Msg_quit:
             mvwaddch(*win, (GSIZE - 6)/5 + STATIC_SPACE * 2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2 - 2,
                      SPRITE_CURSOR);
+            mvwprintw(*win, (GSIZE - 6)/5 + STATIC_SPACE * 2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2,
+                      MSG_TO_STRING(Msg_quit));
             break;
     }
+    wattroff(*win, COLOR_PAIR(Evil_Ui));
     wrefresh(*win);
 }
 

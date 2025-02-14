@@ -181,9 +181,9 @@ void printCrocs(WINDOW **g_win, msg *c, int nspeeds)
 {
     char sprite_croc[2][SIZE_CROC]={
             "}[][][]{<",
-            " w   w   "
+            " M   M   "
     };
-
+    wattron(*g_win, COLOR_PAIR(Crocs));
     for (int s = 0; s < nspeeds; s++)
     {
         for (int j = 0; j < CROC_CAP; j++) {
@@ -197,6 +197,7 @@ void printCrocs(WINDOW **g_win, msg *c, int nspeeds)
             }
         }
     }
+    wattroff(*g_win, COLOR_PAIR(Crocs));
 }
 
 
@@ -281,6 +282,7 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
 void printCrocProjectile(WINDOW **g_win, msg p)
 {
     char sprite_proj[2]={'%','#'};
+    wattron(*g_win, COLOR_PAIR(Crocs));
     for (int i = 0; i < CROC_CAP; i++) {
         if (p.objs[i].x == INVALID_CROC || p.objs[i].y == INVALID_CROC)
             continue;
@@ -288,4 +290,6 @@ void printCrocProjectile(WINDOW **g_win, msg p)
         mvwaddch(*g_win, p.objs[i].y - 1, p.objs[i].x, sprite_proj[0]);
         mvwaddch(*g_win, p.objs[i].y, p.objs[i].x, sprite_proj[1]);
     }
+    wattroff(*g_win, COLOR_PAIR(Crocs));
+
 }
