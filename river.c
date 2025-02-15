@@ -25,7 +25,7 @@ static bool canSpawnCrocodile(obj crocs[], int count, int lane_y, bool moveRight
     return true;
 }
 
-obj invalidateCrocodile()
+obj invalidateObject()
 {
     obj c = {
         .y= INVALID_CROC,
@@ -42,7 +42,7 @@ msg initCrocodiles(enum Speeds speed)
     };
     // Initialize all positions as invalid
     for (int i = 0; i < CROC_CAP; i++)
-        croc.objs [i] = invalidateCrocodile();
+        croc.objs [i] = invalidateObject();
 
     return croc;
 }
@@ -54,11 +54,11 @@ obj updateCrocodilePosition(obj croc, bool moveRight)
     if (moveRight) {
         croc.x += MOVE_STEP;
         if (croc.x >= GSIZE)
-            croc = invalidateCrocodile();
+            croc = invalidateObject();
     } else {
         croc.x -= MOVE_STEP;
         if (croc.x < -(SIZE_CROC + 1))
-            croc = invalidateCrocodile();
+            croc = invalidateObject();
     }
     return croc;
 }
@@ -71,7 +71,7 @@ obj updateCrocodile(obj c, bool isRight, int *active_crocs)
     int lane = (GSIZE/2 - 2 - c.y - 1) / 2;
     
     if (!(IS_VALID_LANE(lane))) {
-        c = invalidateCrocodile();
+        c = invalidateObject();
         return c;
     }
     
@@ -90,7 +90,7 @@ obj compactCrocs(obj c[], int i, int *validIdx)
         return c[i];
     if (i != *validIdx) {
         c[*validIdx] = c[i];
-        c[i] = invalidateCrocodile();
+        c[i] = invalidateObject();
     }
     *validIdx += 1;
     return c[i];
@@ -163,7 +163,7 @@ void river(rvr r, enum Speeds speed, int pipefd[])
 msg handleCroc(obj p[], msg c) {
     // Clear all positions
     for (int i = 0; i < CROC_CAP; i++)
-        c.objs[i] = invalidateCrocodile();
+        c.objs[i] = invalidateObject();
 
     // Copy valid positions
     int validIdx = 0;
@@ -174,29 +174,37 @@ msg handleCroc(obj p[], msg c) {
         validIdx++;
     }
     
-    if (c.shoots)
+    if (c.objs[CROC_CAP - 1].shoots)
         c.id = Id_croc_projectile;
 
     return c;
 }
 
-void printCrocs(WINDOW **g_win, msg *c, int nspeeds)
+void printCrocs(WINDOW **g_win, msg *c, int nspeeds, bool isRight)
 {
-    char sprite_croc[2][SIZE_CROC]={
-            "}[][][]{<",
-            " M   M   "
+    char sprite_left[2][SIZE_CROC] = {
+        "}[][][]{<",
+        " M   M   "
     };
+    char sprite_right[2][SIZE_CROC] = {
+        ">}[][][]{",
+        "  M   M  "
+    };
+
     wattron(*g_win, COLOR_PAIR(Crocs));
     for (int s = 0; s < nspeeds; s++)
     {
         for (int j = 0; j < CROC_CAP; j++) {
             if (c[s].objs[j].x == INVALID_CROC || c[s].objs[j].y == INVALID_CROC)
                 break;
+            int lane = (GSIZE/2 - 2 - c[s].objs[j].y - 1) / 2;
+            bool moveRight = ((int)isRight + lane) % 2 == 0;
             for (int i = 0; i < SIZE_CROC; i++) {
                 if (!(IS_ON_SCREEN(c[s].objs[j].x + i)))
                     continue;
-                mvwaddch(*g_win, c[s].objs[j].y - 1, c[s].objs[j].x + i, sprite_croc[0][i]);
-                mvwaddch(*g_win, c[s].objs[j].y, c[s].objs[j].x + i, sprite_croc[1][i]);
+
+                mvwaddch(*g_win, c[s].objs[j].y - 1, c[s].objs[j].x + i, moveRight ? sprite_right[0][i] : sprite_left[0][i]);
+                mvwaddch(*g_win, c[s].objs[j].y, c[s].objs[j].x + i, moveRight ? sprite_right[1][i] : sprite_left[1][i]);
             }
         }
     }
@@ -210,8 +218,8 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
     };
     
     // Initialize all projectiles as invalid
-    for (int i = 0; i < CROC_CAP; i++)
-        projectiles.objs[i] = invalidateCrocodile();
+    for (int i = 0; i < CROC_CAP - 1; i++)
+        projectiles.objs[i] = invalidateObject();
 
     // Set non-blocking read
     int flags = fcntl(pipefd_projectiles[0], F_GETFL, 0);
@@ -220,22 +228,22 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
     close(pipefd[0]);
     
     while (true) {
-        msg tmp = { .sx_x = 0 };
+        msg tmp = { .objs[CROC_CAP - 1].x = 0 };
         ssize_t n = read(pipefd_projectiles[0], &tmp, sizeof(msg));
         if (n == sizeof(msg)) {
             // tentativo di eliminare i proiettili colpiti
-            if (tmp.sx_x == INVALID_CROC) {
-                projectiles.objs[tmp.p.y] = invalidateCrocodile();
+            if (tmp.objs[CROC_CAP - 1].x == INVALID_CROC) {
+                projectiles.objs[tmp.objs[CROC_CAP - 1].y] = invalidateObject();
             }
 
             // Handle new shooting crocodiles
-            if (tmp.shoots) {
+            if (tmp.objs[CROC_CAP - 1].shoots) {
                 for (int i = 0; i < CROC_CAP; i++) {
                     if (!tmp.objs[i].shoots || tmp.objs[i].x == INVALID_CROC)
                         continue;
                         
                     // Find empty slot for new projectile
-                    for (int j = 0; j < CROC_CAP; j++) {
+                    for (int j = 0; j < CROC_CAP - 1; j++) {
                         if (projectiles.objs[j].x != INVALID_CROC)
                             continue;
                             
@@ -273,11 +281,11 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
             if (moveRight) {
                 projectiles.objs[i].x += MOVE_STEP;
                 if (projectiles.objs[i].x >= GSIZE)
-                    projectiles.objs[i] = invalidateCrocodile();
+                    projectiles.objs[i] = invalidateObject();
             } else {
                 projectiles.objs[i].x -= MOVE_STEP;
                 if (projectiles.objs[i].x < 0)
-                    projectiles.objs[i] = invalidateCrocodile();
+                    projectiles.objs[i] = invalidateObject();
             }
         }
 

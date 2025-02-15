@@ -1,6 +1,6 @@
 #include "dens.h"
 
-bool den(bool dens[NDENS], pos frog_pos)
+bool den(bool dens[NDENS], obj frog_pos)
 {
     for (int i = 0; i < NDENS; i++) {
         int start_x = DEN_START_X(i) - 2;

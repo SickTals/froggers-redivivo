@@ -77,10 +77,10 @@ typedef struct Object {
 
 typedef struct Message {
     msgid id; 
-    pos p;
+    //pos p;
     obj objs[CROC_CAP];
-    bool shoots;
-    int sx_x;
+    //bool shoots;
+    //int sx_x;
 } msg;
 
 #endif

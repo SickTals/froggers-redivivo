@@ -11,8 +11,8 @@
 #define X_STEP strlen(SPRITE_FROG)
 
 void frog(WINDOW **win, int pipefd[]);
-msg handleFrog(pos p, msg f);
-void printFrog(WINDOW **g_win, msg f);
+msg handleFrog(obj incoming, obj frog);
+void printFrog(WINDOW **g_win, obj frog);
 void granade(int pipefd[], int pipefd_grenade[]);
 void printGranade(WINDOW **g_win, msg g);
 
