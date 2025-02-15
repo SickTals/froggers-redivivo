@@ -25,6 +25,8 @@
 #define CENTER_X (GSIZE / 2)
 #define SIDEWALK_Y (GSIZE/2 - 2)
 #define BOX_BORDER 1
+#define RIVER_LENGTH 16
+
 
 #define IS_CROC_SHOOTING msgs[NTASKS].objs[i].x != INVALID_CROC && \
                         msgs[NTASKS].objs[i].y != INVALID_CROC && \
@@ -37,9 +39,10 @@
 void init_screen(WINDOW **g_win, WINDOW **ui_win);
 void initObjects(msg msgs[]);
 void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], int pipefd_grenade[], rvr r);
-void end_screen(WINDOW **g_win, WINDOW **ui_win, bool dens[NDENS]);
-bool isDrawning(obj f, msg *c, int nspeeds);
-bool isShot(int proj_active, obj f, msg proj);
+void kill_screen(WINDOW **g_win, WINDOW **ui_win);
+void end_screen(WINDOW **win, bool dens[]);
+bool isDrawning(pos f, msg *c, int nspeeds);
+bool isShot(int proj_active, pos f, msg proj);
 gstate hasWon(bool dens[NDENS]);
 void init_bckg(WINDOW **win);
 gstate collisions(msg msgs[], bool dens[NDENS], bool isRight, int pipefd_projectiles[], int pipefd_grenade[], int proj_active);

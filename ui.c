@@ -90,6 +90,7 @@ void printUi(WINDOW **win, msg t, int lives, int score)
     snprintf(fscore, sizeof(fscore), "%016d", score);
 
     wattron(*win, COLOR_PAIR(Ui));
+    box(*win, ACS_VLINE, ACS_HLINE);
     for(int j = 1; j < UISIZE - 1; j++)
         for (int i = 1; i < GSIZE/2 - 1; i++)
             mvwaddch(*win, i, j, ' ');
