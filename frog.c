@@ -78,10 +78,16 @@ void printFrog(WINDOW **g_win, msg f)
 
 }
 
+msg detectGrenadeCollision(msg g, int pipefd[])
+{
+
+    return g;
+}
+
 void granade(int pipefd[], int pipefd_grenade[]) {
     msg g;
-    close(pipefd[0]);
 
+    close(pipefd[0]);
     int flags = fcntl(pipefd_grenade[0], F_GETFL, 0);
     fcntl(pipefd_grenade[0], F_SETFL, flags | O_NONBLOCK);
 
@@ -89,6 +95,7 @@ void granade(int pipefd[], int pipefd_grenade[]) {
         ssize_t bytes_read = read(pipefd_grenade[0], &g, sizeof(g));
         if (bytes_read != sizeof(g) || !(g.shoots))
             continue;
+
         g.id = Id_granade;
         g.sx_x = g.p.x - 1;
         g.p.x += strlen(SPRITE_FROG);

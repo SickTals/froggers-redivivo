@@ -90,7 +90,7 @@ void initObjects(msg msgs[])
     msgs[Id_granade].sx_x = 0;
     for (int i = Slow; i <= Id_croc_projectile; i++)
         for (int j = 0; j < CROC_CAP; j++)
-            msgs[i].objs[j] = invalidateCrocodile(msgs[i].objs[j]);
+            msgs[i].objs[j] = invalidateCrocodile();
 }
 
 void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], int pipefd_grenade[], rvr r)
@@ -143,29 +143,14 @@ msg handleObject(msg msgs[NTASKS + 1], int pipefd_grenade[], int pipefd_projecti
             // Check shooting crocodiles
             for (int i = 0; i < CROC_CAP; i++) {
                 // Only proceed if this croc exists and is shooting
-                if (msgs[NTASKS].objs[i].x != INVALID_CROC &&
-                    msgs[NTASKS].objs[i].y != INVALID_CROC &&
-                    msgs[NTASKS].objs[i].shoots &&
-                    *croc_projectiles_active < CROC_CAP) {
-
-                    msg projectile_msg = {
-                            .id = Id_croc_projectile,
-                            .shoots = true,
-                            .objs[0] = msgs[NTASKS].objs[i]
-                    };
-
-                    projectile_msg.objs[0].shoots = true;
-
-                    // Send to projectile process
-                    write(pipefd_projectiles[1], &projectile_msg, sizeof(msg));
-                    *croc_projectiles_active += 1;
-                }
+                if (!(IS_CROC_SHOOTING))
+                    continue;
+                *croc_projectiles_active = sendProjectileShot(pipefd_projectiles, msgs[NTASKS].objs[i], *croc_projectiles_active);
             }
             return handleCroc(msgs[NTASKS].objs, msgs[msgs[NTASKS].id]);
         case Id_croc_projectile:
             *croc_projectiles_active = updateProjectileCount(msgs[NTASKS].objs);
             return msgs[NTASKS];
-            // Update active projectile count
         case Id_timer:
             return msgs[NTASKS];
         default:
@@ -176,10 +161,6 @@ msg handleObject(msg msgs[NTASKS + 1], int pipefd_grenade[], int pipefd_projecti
 
 void end_screen(WINDOW **g_win, WINDOW **ui_win, bool dens[NDENS])
 {
-   /*( char end_sprite[][]
-
-    if(hasWon(dens)))*/
-
     delwin(*g_win);
     delwin(*ui_win);
     endwin();
@@ -214,11 +195,8 @@ bool isShot(int proj_active, pos f, msg proj)
             continue;
         }
 
-        if (f.x == proj.objs[i].x ||
-        (f.x + 1) == proj.objs[i].x ||
-        (f.x + 2) == proj.objs[i].x) {
+        if (proj.objs[i].x >= f.x && proj.objs[i].x < f.x + strlen(SPRITE_FROG)  )
             return true;
-        }
     }
     return false;
 }
@@ -284,9 +262,10 @@ gstate collisions(msg msgs[], bool dens[NDENS], bool isRight, int pipefd_project
 {
     close(pipefd_grenade[0]);
     close(pipefd_projectiles[0]);
+
     if (isDrawning(msgs[Id_frog].p, &msgs[Id_croc_slow], NSPEEDS) ||
         isShot(proj_active, msgs[Id_frog].p, msgs[Id_croc_projectile])) {
-        //return Dies;
+        return Dies;
     }
     if (den(dens, msgs[Id_frog].p))
         return Win;
@@ -309,16 +288,16 @@ bool sendGrenadeShot(int pipefd[], msg f) {
 int sendProjectileShot(int pipefd[], obj c, int n)
 {
     // Create a new message specifically for the projectile
-    msg projectile_msg;
+        msg projectile_msg = {
+                            .id = Id_croc_projectile,
+                            .shoots = true,
+                            .objs[0] = c 
+                    };
 
-    // Copy the shooting crocodile's data
-    projectile_msg.id = Id_croc_projectile;
-    projectile_msg.shoots = true;
-    projectile_msg.objs[0] = c;
-    projectile_msg.objs[0].shoots = true;
+                    projectile_msg.objs[0].shoots = true;
 
-    // Send to projectile process
-    write(pipefd[1], &projectile_msg, sizeof(msg));
+                    // Send to projectile process
+                    write(pipefd[1], &projectile_msg, sizeof(msg));
     return n + 1;
 }
 

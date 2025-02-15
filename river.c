@@ -25,10 +25,13 @@ static bool canSpawnCrocodile(obj crocs[], int count, int lane_y, bool moveRight
     return true;
 }
 
-obj invalidateCrocodile(obj c)
+obj invalidateCrocodile()
 {
-    c.x = INVALID_CROC;
-    c.y = INVALID_CROC;
+    obj c = {
+        .y= INVALID_CROC,
+        .x= INVALID_CROC,
+        .shoots = false
+    };
     return c;
 }
 
@@ -39,7 +42,7 @@ msg initCrocodiles(enum Speeds speed)
     };
     // Initialize all positions as invalid
     for (int i = 0; i < CROC_CAP; i++)
-        croc.objs [i] = invalidateCrocodile(croc.objs[i]);
+        croc.objs [i] = invalidateCrocodile();
 
     return croc;
 }
@@ -51,11 +54,11 @@ obj updateCrocodilePosition(obj croc, bool moveRight)
     if (moveRight) {
         croc.x += MOVE_STEP;
         if (croc.x >= GSIZE)
-            croc = invalidateCrocodile(croc);
+            croc = invalidateCrocodile();
     } else {
         croc.x -= MOVE_STEP;
         if (croc.x < -(SIZE_CROC + 1))
-            croc = invalidateCrocodile(croc);
+            croc = invalidateCrocodile();
     }
     return croc;
 }
@@ -68,7 +71,7 @@ obj updateCrocodile(obj c, bool isRight, int *active_crocs)
     int lane = (GSIZE/2 - 2 - c.y - 1) / 2;
     
     if (!(IS_VALID_LANE(lane))) {
-        c = invalidateCrocodile(c);
+        c = invalidateCrocodile();
         return c;
     }
     
@@ -87,7 +90,7 @@ obj compactCrocs(obj c[], int i, int *validIdx)
         return c[i];
     if (i != *validIdx) {
         c[*validIdx] = c[i];
-        c[i] = invalidateCrocodile(c[i]);
+        c[i] = invalidateCrocodile();
     }
     *validIdx += 1;
     return c[i];
@@ -160,7 +163,7 @@ void river(rvr r, enum Speeds speed, int pipefd[])
 msg handleCroc(obj p[], msg c) {
     // Clear all positions
     for (int i = 0; i < CROC_CAP; i++)
-        c.objs[i] = invalidateCrocodile(c.objs[i]);
+        c.objs[i] = invalidateCrocodile();
 
     // Copy valid positions
     int validIdx = 0;
@@ -208,7 +211,7 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
     
     // Initialize all projectiles as invalid
     for (int i = 0; i < CROC_CAP; i++)
-        projectiles.objs[i] = invalidateCrocodile(projectiles.objs[i]);
+        projectiles.objs[i] = invalidateCrocodile();
 
     // Set non-blocking read
     int flags = fcntl(pipefd_projectiles[0], F_GETFL, 0);
@@ -222,7 +225,7 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
         if (n == sizeof(msg)) {
             // tentativo di eliminare i proiettili colpiti
             if (tmp.sx_x == INVALID_CROC) {
-                projectiles.objs[tmp.p.y] = invalidateCrocodile(projectiles.objs[tmp.p.y]);
+                projectiles.objs[tmp.p.y] = invalidateCrocodile();
             }
 
             // Handle new shooting crocodiles
@@ -270,11 +273,11 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
             if (moveRight) {
                 projectiles.objs[i].x += MOVE_STEP;
                 if (projectiles.objs[i].x >= GSIZE)
-                    projectiles.objs[i] = invalidateCrocodile(projectiles.objs[i]);
+                    projectiles.objs[i] = invalidateCrocodile();
             } else {
                 projectiles.objs[i].x -= MOVE_STEP;
                 if (projectiles.objs[i].x < 0)
-                    projectiles.objs[i] = invalidateCrocodile(projectiles.objs[i]);
+                    projectiles.objs[i] = invalidateCrocodile();
             }
         }
 

@@ -26,6 +26,11 @@
 #define SIDEWALK_Y (GSIZE/2 - 2)
 #define BOX_BORDER 1
 
+#define IS_CROC_SHOOTING msgs[NTASKS].objs[i].x != INVALID_CROC && \
+                        msgs[NTASKS].objs[i].y != INVALID_CROC && \
+                        msgs[NTASKS].objs[i].shoots && \
+                        *croc_projectiles_active < CROC_CAP
+
 #define NTASKS 7
 
 

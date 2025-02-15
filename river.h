@@ -33,7 +33,7 @@ typedef struct River {
 } rvr;
 
 rvr generateRiver();
-obj invalidateCrocodile(obj c);
+obj invalidateCrocodile();
 msg initCrocodiles(enum Speeds speed);
 obj updateCrocodilePosition(obj croc, bool moveRight);
 void river(rvr r, enum Speeds speed, int pipefd[]);
