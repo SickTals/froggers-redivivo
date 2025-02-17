@@ -65,10 +65,7 @@ msg handleFrog(pos p, msg f)
 
 void printFrog(WINDOW **g_win, msg f)
 {
-    char sprite_frog[2][3]={
-            "<M>",
-            "/W\\"
-    };
+    char sprite_frog[2][3]={SPRITE_FROG};
     wattron(*g_win, COLOR_PAIR(Grass_Frog));
     for(int i = 0; i < 3; i++){
         mvwaddch(*g_win, f.p.y - 1, f.p.x + i, sprite_frog[0][i]);
@@ -92,7 +89,7 @@ void granade(int pipefd[], int pipefd_grenade[]) {
 
         g.id = Id_granade;
         g.sx_x = g.p.x - 1;
-        g.p.x += strlen(SPRITE_FROG);
+        g.p.x += strlen(SPRITE_LIFE);
 
         while (g.p.x < GSIZE || g.sx_x > 0) {
             msg tmp;
@@ -114,10 +111,13 @@ void granade(int pipefd[], int pipefd_grenade[]) {
 
 void printGranade(WINDOW **g_win, msg g)
 {
+    char sprite_gren[2]= {SPRITE_GREN};
+
+
     wattron(*g_win, COLOR_PAIR(Gren));
-    mvwaddch(*g_win, g.p.y - 1, g.p.x, '\\');
-    mvwaddch(*g_win, g.p.y, g.p.x, '/');
-    mvwaddch(*g_win, g.p.y - 1 , g.sx_x, '/');
-    mvwaddch(*g_win, g.p.y, g.sx_x, '\\');
+    mvwaddch(*g_win, g.p.y - 1, g.p.x, sprite_gren[0]);
+    mvwaddch(*g_win, g.p.y, g.p.x, sprite_gren[1]);
+    mvwaddch(*g_win, g.p.y - 1 , g.sx_x, sprite_gren[1]);
+    mvwaddch(*g_win, g.p.y, g.sx_x, sprite_gren[0]);
     wattroff(*g_win, COLOR_PAIR(Gren));
 }

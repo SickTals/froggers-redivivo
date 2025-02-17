@@ -7,18 +7,18 @@
 #include "common.h"
 #include "ui.h"
 
-enum MenuMsg {
-  Msg_play,
-  Msg_opts,
-  Msg_quit,
-};
-
 #define MENU_START_Y 4
 #define STATIC_SPACE 5
 #define MSG_TO_STRING(msg) \
     ((msg) == Msg_play ? "PLAY"    : \
      (msg) == Msg_opts ? "OPTIONS" : \
      (msg) == Msg_quit ? "QUIT"    : "Unknown")
+
+enum MenuMsg {
+    Msg_play,
+    Msg_opts,
+    Msg_quit,
+};
 
 void ui_animation(int pipefd[], pid_t pid);
 gstate menu(WINDOW **g_win, WINDOW **ui_win);

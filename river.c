@@ -182,10 +182,7 @@ msg handleCroc(obj p[], msg c) {
 
 void printCrocs(WINDOW **g_win, msg *c, int nspeeds)
 {
-    char sprite_croc[2][SIZE_CROC]={
-            "}[][][]{<",
-            " M   M   "
-    };
+    char sprite_croc[2][SIZE_CROC]={SPRITE_CROC};
     wattron(*g_win, COLOR_PAIR(Crocs));
     for (int s = 0; s < nspeeds; s++)
     {
@@ -291,14 +288,14 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
 
 void printCrocProjectile(WINDOW **g_win, msg p)
 {
-    char sprite_proj[2]={'%','#'};
+    char sprite_proj[2]={SPRITE_PROJ};
     wattron(*g_win, COLOR_PAIR(Crocs));
     for (int i = 0; i < CROC_CAP; i++) {
         if (p.objs[i].x == INVALID_CROC || p.objs[i].y == INVALID_CROC)
             continue;
         // Print projectile at the same level as crocodiles but with distinct character
-        mvwaddch(*g_win, p.objs[i].y - 1, p.objs[i].x, sprite_proj[0]);
-        mvwaddch(*g_win, p.objs[i].y, p.objs[i].x, sprite_proj[1]);
+        mvwaddch(*g_win, p.objs[i].y - 1, p.objs[i].x, sprite_proj[COIN_FLIP]);
+        mvwaddch(*g_win, p.objs[i].y, p.objs[i].x, sprite_proj[COIN_FLIP]);
     }
     wattroff(*g_win, COLOR_PAIR(Crocs));
 

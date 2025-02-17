@@ -6,13 +6,88 @@
 #define UISIZE 8
 #define UDELAY 500000
 
-#define SPRITE_CURSOR '>'
-#define SPRITE_FROG ">M<"
+#define NLANES 8
+#define CROC_CAP NLANES*NLANES
 
 #define COLOR_BROWN 70
 
-#define NLANES 8
-#define CROC_CAP NLANES*NLANES
+#define SPRITE_CURSOR '>'
+#define SPRITE_LIFE ">M<"
+#define SPRITE_FROG \
+    "<M>",          \
+    "/W\\"
+#define SPRITE_GREN \
+    '\\','/'
+#define SPRITE_CROC \
+    "}[][][]{<",    \
+    " M   M   "
+#define SPRITE_PROJ \
+    '%',            \
+    '#'
+#define SPRITE_DEN_OPEN \
+    "\\/][\\/",         \
+    "| () |",           \
+    " \\__/ "
+
+#define SPRITE_DEN_CLOSE \
+    "\\/__\\/",          \
+    "|=[]=|",            \
+    " \\][/ "
+
+#define SPRITE_MTITLE \
+" _____                                    ",\
+"|  ___| __ ___   __ _  __ _  ___ _ __ ___ ",\
+"| |_ | '__/ _ \\ / _` |/ _` |/ _ \\ '__/ __|",\
+"|  _|| | | (_) | (_| | (_| |  __/ |  \\__ \\",\
+"|_|  |_|  \\___/ \\__, |\\__, |\\___|_|  |___/",\
+"                |___/ |___/               "
+
+#define SPRITE_STITLE \
+"[*)",\
+"|\\_",\
+"[__",\
+"[__",\
+"/_",\
+" _/",\
+"| |",\
+"|_|",\
+"[*)",\
+"|\\ ",\
+"[*)",\
+"|\\_",\
+"[__",\
+"[__",\
+"/  ",\
+"\\__",\
+"___",\
+" | ",\
+" ' ",\
+" | ",\
+"/ \\",\
+"\\_/",\
+"|\\|",\
+"| \\"
+
+#define SPRITE_PAUSE \
+"  ____                          ",\
+" |  _ \\ __ _ _   _ ___  ___    ",\
+" | |_) / _` | | | / __|/ _ \\   ",\
+" |  __/ (_| | |_| \\__ \\  __/  ",\
+" |_|   \\__,_|\\__,_|___/\\___| "
+
+#define SPRITE_WIN \
+"__   __           __        __ _        ",\
+"\\ \\ / /___   _   _\\ \\      / /(_) _ __  ",\
+" \\ V // _ \\ | | | |\\ \\ /\\ / / | || '_ \\ ",\
+"  | || (_) || |_| | \\ V  V /  | || | | |",\
+"  |_| \\___/  \\__,_|  \\_/\\_/   |_||_| |_|"
+
+#define SPRITE_LOSE \
+"__   __             _                      ",\
+"\\ \\ / /___   _   _ | |     ___   ___   ___ ",\
+" \\ V // _ \\ | | | || |    / _ \\ / __| / _ \\",\
+"  | || (_) || |_| || |___| (_) |\\__ \\|  __/",\
+"  |_| \\___/  \\__,_||_____|\\___/ |___/ \\___|"
 
 enum Keys {
     Key_exit = 'Q',
@@ -34,7 +109,8 @@ enum Colors_sprite{
     Gren,
     Ui,
     Lives,
-    Evil_Ui
+    Evil_Ui,
+    Alt_E_Ui
 };
 
 typedef enum GameStatus {
@@ -44,7 +120,8 @@ typedef enum GameStatus {
     Dies,
     Win,
     Pmenu,
-    EndGame
+    EndW,
+    EndL
 } gstate;
 
 typedef enum {

@@ -8,7 +8,7 @@
 #include "common.h"
 
 #define Y_STEP 2
-#define X_STEP strlen(SPRITE_FROG)
+#define X_STEP strlen(SPRITE_LIFE)
 
 void frog(WINDOW **win, int pipefd[]);
 msg handleFrog(pos p, msg f);

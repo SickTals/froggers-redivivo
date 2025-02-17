@@ -29,25 +29,17 @@ gstate menu(WINDOW **g_win, WINDOW **ui_win)
 void printMenu(WINDOW **win, int cursor)
 {
 
-    char froggers_sprite[6][43] = {" _____                                    ",
-                                   "|  ___| __ ___   __ _  __ _  ___ _ __ ___ ",
-                                   "| |_ | '__/ _ \\ / _` |/ _` |/ _ \\ '__/ __|",
-                                   "|  _|| | | (_) | (_| | (_| |  __/ |  \\__ \\",
-                                   "|_|  |_|  \\___/ \\__, |\\__, |\\___|_|  |___/",
-                                   "                |___/ |___/               "};
+    char froggers_sprite[6][43] = {SPRITE_MTITLE};
     wclear(*win);
     box(*win, ACS_VLINE, ACS_HLINE);
 
     for(int j = 1; j < GSIZE/2 - 1; j++)
         for (int i = 1; i < GSIZE - 1; i++)
             mvwaddch(*win, j, i, ' ');
-
     for (int x = (GSIZE/8)*3 + 1; x < (GSIZE/8)*5 - 1; x++) {
         mvwprintw(*win, ((GSIZE - 6)/5) + MENU_START_Y/2 , x, "%c" , '_');  // Top border
         mvwprintw(*win, ((GSIZE/8)*3), x, "%c" , '_');  // Bottom border
     }
-
-    // Left and right borders
     for (int y = ((GSIZE - 6)/5) + 3; y <= ((GSIZE/8)*3) ; y++) {
         mvwprintw(*win, y, (GSIZE/8)*3 , "%c" , '|');  // Left border
         mvwprintw(*win, y, (GSIZE/8)*5 - 1 , "%c" ,'|');  // Right border
@@ -136,13 +128,7 @@ gstate handleMenu(WINDOW **win, int *cursor)
 void PauseMenu(WINDOW **p_win)
 {
     gstate flag = Pmenu;
-    char sprite[5][33] = {
-            "  ____                          ",
-            " |  _ \\ __ _ _   _ ___  ___    ",
-            " | |_) / _` | | | / __|/ _ \\   ",
-            " |  __/ (_| | |_| \\__ \\  __/  ",
-            " |_|   \\__,_|\\__,_|___/\\___| "
-    };
+    char sprite[5][33] = {SPRITE_PAUSE};
 
     while(flag == Pmenu){
         wclear(*p_win);
