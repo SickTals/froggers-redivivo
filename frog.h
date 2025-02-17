@@ -7,13 +7,19 @@
 #include <fcntl.h>
 #include "common.h"
 
-#define Y_STEP 2
-#define X_STEP strlen(SPRITE_FROG)
+#define SIZE_PIXEL 2
+
+
+enum Grenades {
+    Idx_sx_grenade = 0,
+    Idx_dx_grenade = 1,
+    N_grenades = 2
+};
 
 void frog(WINDOW **win, int pipefd[]);
 msg handleFrog(obj incoming, obj frog);
-void printFrog(WINDOW **g_win, obj frog);
+void printFrog(WINDOW **win, obj frog);
 void granade(int pipefd[], int pipefd_grenade[]);
-void printGranade(WINDOW **g_win, msg g);
+void printGranade(WINDOW **win, obj grenade[N_grenades]);
 
 #endif

@@ -1,5 +1,6 @@
 #include "main.h"
 #include "common.h"
+#include "frog.h"
 #include "river.h"
 
 int main() 
@@ -115,7 +116,7 @@ void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], i
             close(pipefd_grenade[0]);
             projectile(pipefd, pipefd_projectiles, r.isRight);
             break;
-        case Id_timer:
+       case Id_timer:
             close(pipefd_grenade[0]);
             close(pipefd_projectiles[0]);
             timer(pipefd);
@@ -133,7 +134,7 @@ void end_screen(WINDOW **g_win, WINDOW **ui_win, bool dens[NDENS])
 
 bool isDrawning(obj f, msg *c, int nspeeds)
 {
-    if (f.y >= SIDEWALK_Y || f.y <= SIDEWALK_Y - BOX_BORDER * 2 - (NLANES * Y_STEP))
+    if (f.y >= SIDEWALK_Y || f.y <= SIDEWALK_Y - BOX_BORDER * 2 - (NLANES * SIZE_PIXEL))
         return false;
     for (int k = 0; k < nspeeds; k++) {
         for (int i = 0; i < CROC_CAP; i++) {
@@ -143,7 +144,7 @@ bool isDrawning(obj f, msg *c, int nspeeds)
                 continue;
             }
             if (f.x >= c[k].objs[i].x &&
-                f.x <= c[k].objs[i].x + SIZE_CROC - 1) {
+                f.x < c[k].objs[i].x + SIZE_CROC) {
                 return false;
             }
         }
@@ -151,16 +152,16 @@ bool isDrawning(obj f, msg *c, int nspeeds)
     return true;
 }
 
-bool isShot(int proj_active, obj f, msg proj)
+bool isShot(int proj_active, obj frog, msg proj)
 {
     for (int i = 0; i < proj_active; i++) {
         if (proj.objs[i].y == INVALID_CROC ||
             proj.objs[i].x == INVALID_CROC ||
-            f.y != proj.objs[i].y) {
+            frog.y != proj.objs[i].y) {
             continue;
         }
 
-        if (proj.objs[i].x >= f.x && proj.objs[i].x < f.x + strlen(SPRITE_FROG))
+        if (proj.objs[i].x >= frog.x && proj.objs[i].x < frog.x + strlen(SPRITE_FROG))
             return true;
     }
     return false;
@@ -341,7 +342,6 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
     close(pipefd_grenade[0]);
 
     while (flag == Game) {
-
         wclear(*g_win);
         wclear(*ui_win);
 
@@ -351,7 +351,7 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
         printCrocs(g_win, &msgs[Id_croc_slow], NSPEEDS, r.isRight);
         printFrog(g_win, msgs[Id_frog].objs[0]);
         printCrocProjectile(g_win, msgs[Id_croc_projectile]);
-        printGranade(g_win, msgs[Id_granade]);
+        printGranade(g_win, msgs[Id_granade].objs);
         wattron(*ui_win, COLOR_PAIR(Ui));
         wattron(*g_win, COLOR_PAIR(Ui));
         box(*g_win, ACS_VLINE, ACS_HLINE);
@@ -370,15 +370,13 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
             for (int i = 0; i < NTASKS; i++)
                 kill(pids[i], SIGSTOP);
             flushinp();
-            wattron(p_win, COLOR_PAIR(Ui));
-            PauseMenu(&p_win);
-            wattroff(p_win, COLOR_PAIR(Ui));
+            pauseMenu(&p_win);
             for (int i = 0; i < NTASKS; i++)
                 kill(pids[i], SIGCONT);
         } else if (msgs[NTASKS].id == Id_quit) {
-            flag = Menu;
             for (int i = 0; i < NDENS; i++)
                 dens[i] = false;
+            flag = Menu;
         }
 
         msgs[msgs[NTASKS].id] = handleObject(msgs, pipefd_grenade, pipefd_projectiles, &grenade_active, &croc_projectiles_active);
@@ -386,7 +384,6 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
 
     wclear(*g_win);
     wclear(*ui_win);
-    box(*ui_win, ACS_VLINE, ACS_HLINE);
     wrefresh(*g_win);
     wrefresh(*ui_win);
 

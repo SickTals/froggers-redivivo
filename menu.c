@@ -133,9 +133,9 @@ gstate handleMenu(WINDOW **win, int *cursor)
   return Menu;
 }
 
-void PauseMenu(WINDOW **p_win)
+void pauseMenu(WINDOW **win)
 {
-    gstate flag = Pmenu;
+    bool flag = true;
     char sprite[5][33] = {
             "  ____                          ",
             " |  _ \\ __ _ _   _ ___  ___    ",
@@ -144,19 +144,19 @@ void PauseMenu(WINDOW **p_win)
             " |_|   \\__,_|\\__,_|___/\\___| "
     };
 
-    while(flag == Pmenu){
-        wclear(*p_win);
-        printPauseMenu(p_win, sprite);
-        wrefresh(*p_win);
-        char user_input = wgetch(*p_win);
+
+    while(flag){
+        wclear(*win);
+        printPauseMenu(win, sprite);
+        wrefresh(*win);
+        char user_input = wgetch(*win);
         switch (user_input) {
             case Key_pause:
             case '\n':
             case ' ':
-                flag = Game;
+                flag = false;
                 break;
             default:
-                flag = Pmenu;
                 break;
         }
     }
@@ -164,6 +164,7 @@ void PauseMenu(WINDOW **p_win)
 
 void printPauseMenu(WINDOW **win, char sprite[5][33])
 {
+    wattron(*win, COLOR_PAIR(Ui));
     box(*win, ACS_VLINE, ACS_HLINE);
 
     for(int j = 1; j < PSIZE/3 - 1; j++)
@@ -172,4 +173,5 @@ void printPauseMenu(WINDOW **win, char sprite[5][33])
 
     for(int i = 0; i < 5; i++)
         mvwprintw(*win, MENU_START_Y + i, PSIZE/6, "%s", sprite[i]); // Update row to 4 + i // Ensure the window is refreshed
+    wattroff(*win, COLOR_PAIR(Ui));
 }
