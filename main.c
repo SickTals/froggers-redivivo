@@ -285,6 +285,38 @@ void init_bckg(WINDOW **win)
 
 }
 
+void isOnCrocodile(msg msgs[], pos f, msg *c, bool isRight) {
+    if (f.y >= SIDEWALK_Y - 1 || f.y <= SIDEWALK_Y - BOX_BORDER - (NLANES * Y_STEP))
+        return;
+
+    for (int k = 0; k < NSPEEDS; k++) {
+        for (int i = 0; i < CROC_CAP; i++) {
+            if (c[k].objs[i].y == INVALID_CROC ||
+                c[k].objs[i].x == INVALID_CROC ||
+                f.y != c[k].objs[i].y) {
+                continue;
+            }
+
+            if (f.x >= c[k].objs[i].x && f.x <= c[k].objs[i].x + SIZE_CROC - 1) {
+                // Calculate which direction the crocodile is moving
+                int lane = (GSIZE/2 - 2 - c[k].objs[i].y - 1) / 2;
+                bool moveRight = (isRight + lane) % 2 == 0;
+
+                // Update frog position directly
+                msgs[Id_frog].p.x += (moveRight ? 1 : -1);
+
+                // Ensure the frog stays within bounds
+                if (msgs[Id_frog].p.x < 1)
+                    msgs[Id_frog].p.x = 1;
+                else if (msgs[Id_frog].p.x > GSIZE - 3)  // -3 for frog width
+                    msgs[Id_frog].p.x = GSIZE - 3;
+
+                return; // Exit after finding and updating position
+            }
+        }
+    }
+}
+
 void grenadeCollision(msg g, msg p, int pipefd_projectiles[], int pipefd_grenade[])
 {
     msg tmp_g = {
@@ -419,7 +451,7 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
         wrefresh(*ui_win);
 
         flag = collisions(msgs, dens, r.isRight, pipefd_projectiles, pipefd_grenade, croc_projectiles_active);
-        
+
         (void)read(pipefd[0], &msgs[NTASKS], sizeof(msgs[NTASKS]));
 
         if (msgs[NTASKS].id == Id_pause) {
@@ -438,6 +470,7 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
         }
 
         msgs[msgs[NTASKS].id] = handleObject(msgs, pipefd_grenade, pipefd_projectiles, &grenade_active, &croc_projectiles_active);
+        isOnCrocodile(msgs, msgs[Id_frog].p, &msgs[Id_croc_slow], r.isRight);
     }
 
     // this // this

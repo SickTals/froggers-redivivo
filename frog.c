@@ -5,13 +5,16 @@ void frog(WINDOW **win, int pipefd[]){
     close(pipefd[0]);
     char user_input;
     msg msg_frog;
+
     while(true){ // Ciclo infinito chiuso dal padre
+
         msg_frog.id = Id_frog;
         msg_frog.p.y = 0;
         msg_frog.p.x = 0;
         msg_frog.shoots = false;
         user_input = wgetch(*win);
         flushinp();
+
         switch(user_input){
             case Key_up: 
                 msg_frog.p.y = Key_up;

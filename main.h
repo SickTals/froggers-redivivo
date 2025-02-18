@@ -46,6 +46,7 @@ int updateProjectileCount(obj p[]);
 msg handleObject(msg msgs[NTASKS + 1], int pipefd_grenade[], int pipefd_projectiles[], bool *grenade_active, int *croc_projectiles_active);
 bool isDrawning(pos f, msg *c, int nspeeds);
 bool isShot(int proj_active, pos f, msg proj);
+void isOnCrocodile(msg msgs[], pos f, msg *c, bool isRight);
 bool hasWon(bool dens[NDENS]);
 gstate collisions(msg msgs[], bool dens[NDENS], bool isRight, int pipefd_projectiles[], int pipefd_grenade[], int proj_active);
 void end_screenW(WINDOW **win, bool dens[], int h);
