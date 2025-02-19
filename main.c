@@ -179,7 +179,7 @@ void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], i
     }
 }
 
-msg handleObject(msg msgs[NTASKS + 1], int pipefd_grenade[], int pipefd_projectiles[], bool *grenade_active, int *croc_projectiles_active)
+msg handleObject(msg msgs[NTASKS + 1], int pipefd_grenade[], int pipefd_projectiles[], bool *grenade_active, int *croc_projectiles_active, bool isRight)
 {
     switch (msgs[NTASKS].id) {
         case Id_frog:
@@ -200,6 +200,7 @@ msg handleObject(msg msgs[NTASKS + 1], int pipefd_grenade[], int pipefd_projecti
                     continue;
                 *croc_projectiles_active = sendProjectileShot(pipefd_projectiles, msgs[NTASKS].objs[i], *croc_projectiles_active);
             }
+            isOnCrocodile(msgs, msgs[Id_frog].p, &msgs[msgs[NTASKS].id], isRight);
             return handleCroc(msgs[NTASKS].objs, msgs[msgs[NTASKS].id]);
         case Id_croc_projectile:
             *croc_projectiles_active = updateProjectileCount(msgs[NTASKS].objs);
@@ -289,30 +290,28 @@ void isOnCrocodile(msg msgs[], pos f, msg *c, bool isRight) {
     if (f.y >= SIDEWALK_Y - 1 || f.y <= SIDEWALK_Y - BOX_BORDER - (NLANES * Y_STEP))
         return;
 
-    for (int k = 0; k < NSPEEDS; k++) {
-        for (int i = 0; i < CROC_CAP; i++) {
-            if (c[k].objs[i].y == INVALID_CROC ||
-                c[k].objs[i].x == INVALID_CROC ||
-                f.y != c[k].objs[i].y) {
-                continue;
-            }
+    for (int i = 0; i < CROC_CAP; i++) {
+        if (c->objs[i].y == INVALID_CROC ||
+            c->objs[i].x == INVALID_CROC ||
+            f.y != c->objs[i].y)
+            continue;
 
-            if (f.x >= c[k].objs[i].x && f.x <= c[k].objs[i].x + SIZE_CROC - 1) {
-                // Calculate which direction the crocodile is moving
-                int lane = (GSIZE/2 - 2 - c[k].objs[i].y - 1) / 2;
-                bool moveRight = (isRight + lane) % 2 == 0;
+        if (f.x >= c->objs[i].x && f.x <= c->objs[i].x + SIZE_CROC - 1) {
+            // Calculate which direction the crocodile is moving
+            int lane = (GSIZE / 2 - 2 - c->objs[i].y - 1) / 2;
+            bool moveRight = (isRight + lane) % 2 == 0;
 
-                // Update frog position directly
-                msgs[Id_frog].p.x += (moveRight ? 1 : -1);
+            // Update frog position directly
+            msgs[Id_frog].p.x += (moveRight ? 1 : -1);
 
-                // Ensure the frog stays within bounds
-                if (msgs[Id_frog].p.x < 1)
-                    msgs[Id_frog].p.x = 1;
-                else if (msgs[Id_frog].p.x > GSIZE - 3)  // -3 for frog width
-                    msgs[Id_frog].p.x = GSIZE - 3;
+            // Ensure the frog stays within bounds
+            if (msgs[Id_frog].p.x < 1)
+                msgs[Id_frog].p.x = 1;
+            else if (msgs[Id_frog].p.x > GSIZE - 3)  // -3 for frog width
+                msgs[Id_frog].p.x = GSIZE - 3;
 
-                return; // Exit after finding and updating position
-            }
+            return; // Exit after finding and updating position
+
         }
     }
 }
@@ -469,8 +468,7 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
             flag = EndL;
         }
 
-        msgs[msgs[NTASKS].id] = handleObject(msgs, pipefd_grenade, pipefd_projectiles, &grenade_active, &croc_projectiles_active);
-        isOnCrocodile(msgs, msgs[Id_frog].p, &msgs[Id_croc_slow], r.isRight);
+        msgs[msgs[NTASKS].id] = handleObject(msgs, pipefd_grenade, pipefd_projectiles, &grenade_active, &croc_projectiles_active, r.isRight);
     }
 
     // this // this

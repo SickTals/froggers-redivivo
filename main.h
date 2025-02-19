@@ -43,7 +43,7 @@ void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], i
 bool sendGrenadeShot(int pipefd[], msg f);
 int sendProjectileShot(int pipefd[], obj c, int n);
 int updateProjectileCount(obj p[]);
-msg handleObject(msg msgs[NTASKS + 1], int pipefd_grenade[], int pipefd_projectiles[], bool *grenade_active, int *croc_projectiles_active);
+msg handleObject(msg msgs[NTASKS + 1], int pipefd_grenade[], int pipefd_projectiles[], bool *grenade_active, int *croc_projectiles_active, bool isRight);
 bool isDrawning(pos f, msg *c, int nspeeds);
 bool isShot(int proj_active, pos f, msg proj);
 void isOnCrocodile(msg msgs[], pos f, msg *c, bool isRight);
