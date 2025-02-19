@@ -29,12 +29,7 @@ gstate menu(WINDOW **g_win, WINDOW **ui_win)
 void printMenu(WINDOW **win, int cursor)
 {
 
-    char froggers_sprite[6][43] = {" _____                                    ",
-                                   "|  ___| __ ___   __ _  __ _  ___ _ __ ___ ",
-                                   "| |_ | '__/ _ \\ / _` |/ _` |/ _ \\ '__/ __|",
-                                   "|  _|| | | (_) | (_| | (_| |  __/ |  \\__ \\",
-                                   "|_|  |_|  \\___/ \\__, |\\__, |\\___|_|  |___/",
-                                   "                |___/ |___/               "};
+    char froggers_sprite[LENGHT_MTITLE][WIDTH_MTITLE] = {SPRITE_MTITLE};
     wclear(*win);
     box(*win, ACS_VLINE, ACS_HLINE);
 
@@ -43,12 +38,12 @@ void printMenu(WINDOW **win, int cursor)
             mvwaddch(*win, j, i, ' ');
 
     for (int x = (GSIZE/8)*3 + 1; x < (GSIZE/8)*5 - 1; x++) {
-        mvwprintw(*win, ((GSIZE - 6)/5) + MENU_START_Y/2 , x, "%c" , '_');  // Top border
+        mvwprintw(*win, ((GSIZE - LENGHT_MTITLE)/5) + MENU_START_Y/2 , x, "%c" , '_');  // Top border
         mvwprintw(*win, ((GSIZE/8)*3), x, "%c" , '_');  // Bottom border
     }
 
     // Left and right borders
-    for (int y = ((GSIZE - 6)/5) + 3; y <= ((GSIZE/8)*3) ; y++) {
+    for (int y = ((GSIZE - LENGHT_MTITLE)/5) + 3; y <= ((GSIZE/8)*3) ; y++) {
         mvwprintw(*win, y, (GSIZE/8)*3 , "%c" , '|');  // Left border
         mvwprintw(*win, y, (GSIZE/8)*5 - 1 , "%c" ,'|');  // Right border
     }
@@ -61,13 +56,14 @@ void printMenu(WINDOW **win, int cursor)
     wattron(*win, COLOR_PAIR(Ui));
     mvwprintw(*win, GSIZE/4 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
               MSG_TO_STRING(Msg_play));
-    mvwprintw(*win, (GSIZE - 6)/5 + (STATIC_SPACE * 3)/2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2,
+    mvwprintw(*win, (GSIZE - LENGHT_MTITLE)/5 + (STATIC_SPACE * 3)/2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2,
               MSG_TO_STRING(Msg_opts));
-    mvwprintw(*win, (GSIZE - 6)/5 + STATIC_SPACE * 2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2,
+    mvwprintw(*win, (GSIZE - LENGHT_MTITLE)/5 + STATIC_SPACE * 2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2,
               MSG_TO_STRING(Msg_quit));
     wattron(*win, COLOR_PAIR(Ui));
 
     wattron(*win, COLOR_PAIR(Evil_Ui));
+
     switch (cursor) {
         case Msg_play:
             mvwaddch(*win, GSIZE/4, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2 - 2,
@@ -95,11 +91,11 @@ void printMenu(WINDOW **win, int cursor)
 gstate handleSelection(int cursor)
 {
   switch(cursor) {
-    case 0:
+    case Msg_play:
       return Game;
-    case 1:
+    case Msg_opts:
         // TODO: for now just exit
-    case 2:
+    case Msg_quit:
       return Exit;
     default:
       return Exit;
@@ -136,18 +132,11 @@ gstate handleMenu(WINDOW **win, int *cursor)
 void pauseMenu(WINDOW **win)
 {
     bool flag = true;
-    char sprite[5][33] = {
-            "  ____                          ",
-            " |  _ \\ __ _ _   _ ___  ___    ",
-            " | |_) / _` | | | / __|/ _ \\   ",
-            " |  __/ (_| | |_| \\__ \\  __/  ",
-            " |_|   \\__,_|\\__,_|___/\\___| "
-    };
 
 
     while(flag){
         wclear(*win);
-        printPauseMenu(win, sprite);
+        printPauseMenu(win);
         wrefresh(*win);
         char user_input = wgetch(*win);
         switch (user_input) {
@@ -162,8 +151,9 @@ void pauseMenu(WINDOW **win)
     }
 }
 
-void printPauseMenu(WINDOW **win, char sprite[5][33])
+void printPauseMenu(WINDOW **win)
 {
+    char sprite[LENGHT_PAUSE][WIDTH_PAUSE] = {SPRITE_PAUSE};
     wattron(*win, COLOR_PAIR(Ui));
     box(*win, ACS_VLINE, ACS_HLINE);
 
@@ -171,7 +161,7 @@ void printPauseMenu(WINDOW **win, char sprite[5][33])
         for (int i = 1; i < PSIZE - 1; i++)
             mvwaddch(*win, j, i, ' ');
 
-    for(int i = 0; i < 5; i++)
+    for(int i = 0; i < LENGHT_PAUSE; i++)
         mvwprintw(*win, MENU_START_Y + i, PSIZE/6, "%s", sprite[i]); // Update row to 4 + i // Ensure the window is refreshed
     wattroff(*win, COLOR_PAIR(Ui));
 }

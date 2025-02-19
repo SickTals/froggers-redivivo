@@ -12,7 +12,6 @@
 #define NSPEEDS 3
 #define COIN_FLIP rand() % 2
 #define RAND_SPEEDS (2 + (rand() % NSPEEDS))
-#define SPRITE_CROC '-'
 #define SIZE_CROC 9
 #define MIN_GAP 3
 #define SPAWN_THRESHOLD MIN_GAP + SIZE_CROC

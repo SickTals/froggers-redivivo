@@ -8,7 +8,7 @@ int main()
     gstate flag = Menu;
     WINDOW *g_win;
     WINDOW *ui_win;
-    int lives = 3;
+    int lives = NLIVES;
     int score = 0;
     bool dens[NDENS] = {false};
 
@@ -26,7 +26,7 @@ int main()
                 score += 1000;
                 break;
             case Menu:
-                lives = 3;
+                lives = NLIVES;
                 score = 0;
                 flag = menu(&g_win, &ui_win);
                 break;
@@ -36,16 +36,75 @@ int main()
             case Game:
                 flag = game(&g_win, &ui_win, lives, score, dens);
                 break;
+            case EndW:
+                for (int h = 0; h < 10; h++) {
+                    end_screenW(&g_win, dens, h);
+                    wrefresh(g_win);
+                    usleep(UDELAY/5);
+                }
+                flag = Menu;
+                break;
+            case EndL:
+                for (int h = 0; h < 10; h++) {
+                    end_screenL(&g_win, dens, h);
+                    wrefresh(g_win);
+                    usleep(UDELAY/5);
+                }
+                flag = Menu;
+                break;
             default:
                 flag = Exit;
                 break;
         }
     }
 
-    end_screen(&g_win, &ui_win, dens);
+    kill_screen(&g_win, &ui_win, dens);
     return 0;
 }
+void end_screenW(WINDOW **win, bool dens[], int h){
 
+    char sprite_win[5][41] = {SPRITE_WIN};
+
+    wattron(*win, COLOR_PAIR(Ui));
+    box(*win, ACS_VLINE, ACS_HLINE);
+    for(int j = 1; j < GSIZE/2 - 1; j++)
+        for (int i = 1; i < GSIZE - 1; i++)
+            mvwaddch(*win, j, i, ' ');
+    switch((h % 2)){
+        case 1:
+            for (int i = 0; i < 5; i++)
+                mvwprintw(*win, (CENTER_X / 2) - 3 + i, CENTER_X - strlen(sprite_win[0]) / 2, "%s", sprite_win[i]);
+            break;
+        default:
+            wattron(*win, COLOR_PAIR(Evil_Ui));
+            for (int i = 0; i < 5; i++)
+                mvwprintw(*win, (CENTER_X / 2) - 3 + i, CENTER_X - strlen(sprite_win[0]) / 2, "%s", sprite_win[i]);
+            wattron(*win, COLOR_PAIR(Evil_Ui));
+    }
+    wattroff(*win, COLOR_PAIR(Ui));
+}
+
+void end_screenL(WINDOW **win, bool dens[], int h){
+    char sprite_lose[5][44] = {SPRITE_LOSE};
+
+    wattron(*win, COLOR_PAIR(Ui));
+    box(*win, ACS_VLINE, ACS_HLINE);
+    for(int j = 1; j < GSIZE/2 - 1; j++)
+        for (int i = 1; i < GSIZE - 1; i++)
+            mvwaddch(*win, j, i, ' ');
+    switch((h % 2)){
+        case 1:
+            for (int i = 0; i < 5; i++)
+                mvwprintw(*win, (CENTER_X / 2) - 3 + i, CENTER_X - strlen(sprite_lose[0]) / 2, "%s", sprite_lose[i]);
+            break;
+        default:
+            wattron(*win, COLOR_PAIR(Alt_E_Ui));
+            for (int i = 0; i < 5; i++)
+                mvwprintw(*win, (CENTER_X / 2) - 3 + i, CENTER_X - strlen(sprite_lose[0]) / 2, "%s", sprite_lose[i]);
+            wattron(*win, COLOR_PAIR(Alt_E_Ui));
+    }
+    wattroff(*win, COLOR_PAIR(Ui));
+}
 /*
  * Inizializza e imposta la schermata
  * Le finestre vengono posizionate centrate
@@ -56,7 +115,7 @@ void init_screen(WINDOW **g_win, WINDOW **ui_win)
     noecho();
     curs_set(false);
     cbreak();
-    //start_color();
+    start_color();
     *g_win = newwin(GSIZE/2, GSIZE,
                     (LINES - GSIZE/2)/2, ((COLS - GSIZE)/2) - UISIZE/2);
     *ui_win = newwin(GSIZE/2, UISIZE,
@@ -76,7 +135,7 @@ void init_screen(WINDOW **g_win, WINDOW **ui_win)
     init_pair(Ui, COLOR_YELLOW, COLOR_BROWN);
     init_pair(Lives, COLOR_RED, COLOR_WHITE);
     init_pair(Evil_Ui, COLOR_RED, COLOR_BROWN);
-
+    init_pair(Alt_E_Ui, COLOR_CYAN, COLOR_BROWN);
 }
 
 void initObjects(msg msgs[])
@@ -125,7 +184,7 @@ void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], i
 }
 
 
-void end_screen(WINDOW **g_win, WINDOW **ui_win, bool dens[NDENS])
+void kill_screen(WINDOW **g_win, WINDOW **ui_win, bool dens[NDENS])
 {
     delwin(*g_win);
     delwin(*ui_win);
@@ -161,7 +220,7 @@ bool isShot(int proj_active, obj frog, msg proj)
             continue;
         }
 
-        if (proj.objs[i].x >= frog.x && proj.objs[i].x < frog.x + strlen(SPRITE_FROG))
+        if (proj.objs[i].x >= frog.x && proj.objs[i].x < frog.x + WIDTH_FROG)
             return true;
     }
     return false;

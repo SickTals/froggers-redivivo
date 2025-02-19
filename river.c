@@ -182,14 +182,8 @@ msg handleCroc(obj p[], msg c) {
 
 void printCrocs(WINDOW **g_win, msg *c, int nspeeds, bool isRight)
 {
-    char sprite_left[2][SIZE_CROC] = {
-        "}[][][]{<",
-        " M   M   "
-    };
-    char sprite_right[2][SIZE_CROC] = {
-        ">}[][][]{",
-        "  M   M  "
-    };
+    char sprite_left[SIZE_PIXEL][SIZE_CROC] = {SPRITE_CROC_LEFT};
+    char sprite_right[SIZE_PIXEL][SIZE_CROC] = {SPRITE_CROC_RIGHT};
 
     wattron(*g_win, COLOR_PAIR(Crocs));
     for (int s = 0; s < nspeeds; s++)
@@ -203,8 +197,10 @@ void printCrocs(WINDOW **g_win, msg *c, int nspeeds, bool isRight)
                 if (!(IS_ON_SCREEN(c[s].objs[j].x + i)))
                     continue;
 
-                mvwaddch(*g_win, c[s].objs[j].y - 1, c[s].objs[j].x + i, moveRight ? sprite_right[0][i] : sprite_left[0][i]);
-                mvwaddch(*g_win, c[s].objs[j].y, c[s].objs[j].x + i, moveRight ? sprite_right[1][i] : sprite_left[1][i]);
+                mvwaddch(*g_win, c[s].objs[j].y - 1, c[s].objs[j].x + i,
+                         moveRight ? sprite_right[0][i] : sprite_left[0][i]);
+                mvwaddch(*g_win, c[s].objs[j].y, c[s].objs[j].x + i,
+                         moveRight ? sprite_right[1][i] : sprite_left[1][i]);
             }
         }
     }
@@ -299,7 +295,7 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
 
 void printCrocProjectile(WINDOW **g_win, msg p)
 {
-    char sprite_proj[2]={'%','#'};
+    char sprite_proj[SIZE_PIXEL]= {SPRITE_PROJ};
     wattron(*g_win, COLOR_PAIR(Crocs));
     for (int i = 0; i < CROC_CAP; i++) {
         if (p.objs[i].x == INVALID_CROC || p.objs[i].y == INVALID_CROC)

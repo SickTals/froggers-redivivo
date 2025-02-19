@@ -31,13 +31,15 @@
                         msgs[NTASKS].objs[i].shoots && \
                         *croc_projectiles_active < CROC_CAP
 
+#define NLIVES 3
 #define NTASKS 7
 
-
 void init_screen(WINDOW **g_win, WINDOW **ui_win);
+void end_screenL(WINDOW **win, bool dens[], int h);
+void end_screenW(WINDOW **win, bool dens[], int h);
 void initObjects(msg msgs[]);
 void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], int pipefd_grenade[], rvr r);
-void end_screen(WINDOW **g_win, WINDOW **ui_win, bool dens[NDENS]);
+void kill_screen(WINDOW **g_win, WINDOW **ui_win, bool dens[NDENS]);
 bool isDrawning(obj f, msg *c, int nspeeds);
 bool isShot(int proj_active, obj f, msg proj);
 gstate hasWon(bool dens[NDENS]);

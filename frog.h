@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include "common.h"
 
-#define SIZE_PIXEL 2
+#define WIDTH_FROG 3
 
 
 enum Grenades {

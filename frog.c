@@ -63,17 +63,14 @@ msg handleFrog(obj incoming, obj frog)
     if (frog.x < 1)
         frog.x = 1;
     else if (frog.x >= GSIZE - 2)
-        frog.x = GSIZE - strlen(SPRITE_FROG) - 1;
+        frog.x = GSIZE - WIDTH_FROG - 1;
     frog_msg.objs[0] = frog;
     return frog_msg;
 }
 
 void printFrog(WINDOW **win, obj frog)
 {
-    char sprite_frog[SIZE_PIXEL][SIZE_PIXEL + 1] = {
-            "<M>",
-            "/W\\"
-    };
+    char sprite_frog[SIZE_PIXEL][WIDTH_FROG] = {SPRITE_FROG};
     wattron(*win, COLOR_PAIR(Grass_Frog));
     for(int i = 0; i <= SIZE_PIXEL; i++){
         mvwaddch(*win, frog.y - 1, frog.x + i, sprite_frog[0][i]);
@@ -116,7 +113,7 @@ void granade(int pipefd[], int pipefd_grenade[]) {
             },  // left
             {
                 .y = grenade_msg.objs[0].y,
-                .x = grenade_msg.objs[0].x + strlen(SPRITE_FROG)
+                .x = grenade_msg.objs[0].x + WIDTH_FROG
             }  // right
         };
         grenade_msg.id = Id_granade;
@@ -138,10 +135,11 @@ void granade(int pipefd[], int pipefd_grenade[]) {
 
 void printGranade(WINDOW **win, obj grenade[N_grenades])
 {
+    char sprite_gren[N_grenades] = {SPRITE_GREN};
     wattron(*win, COLOR_PAIR(Gren));
-    mvwaddch(*win, grenade[Idx_dx_grenade].y - 1, grenade[Idx_dx_grenade].x, '\\');
-    mvwaddch(*win, grenade[Idx_dx_grenade].y, grenade[Idx_dx_grenade].x, '/');
-    mvwaddch(*win, grenade[Idx_sx_grenade].y - 1 , grenade[Idx_sx_grenade].x, '/');
-    mvwaddch(*win, grenade[Idx_sx_grenade].y, grenade[Idx_sx_grenade].x, '\\');
+    mvwaddch(*win, grenade[Idx_sx_grenade].y, grenade[Idx_sx_grenade].x, sprite_gren[0]);
+    mvwaddch(*win, grenade[Idx_sx_grenade].y - 1 , grenade[Idx_sx_grenade].x, sprite_gren[1]);
+    mvwaddch(*win, grenade[Idx_dx_grenade].y, grenade[Idx_dx_grenade].x, sprite_gren[1]);
+    mvwaddch(*win, grenade[Idx_dx_grenade].y - 1, grenade[Idx_dx_grenade].x, sprite_gren[0]);
     wattroff(*win, COLOR_PAIR(Gren));
 }
