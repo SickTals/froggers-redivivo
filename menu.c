@@ -29,18 +29,21 @@ gstate menu(WINDOW **g_win, WINDOW **ui_win)
 void printMenu(WINDOW **win, int cursor)
 {
 
-    char froggers_sprite[6][43] = {SPRITE_MTITLE};
+    char froggers_sprite[LENGHT_MTITLE][WIDTH_MTITLE] = {SPRITE_MTITLE};
     wclear(*win);
     box(*win, ACS_VLINE, ACS_HLINE);
 
     for(int j = 1; j < GSIZE/2 - 1; j++)
         for (int i = 1; i < GSIZE - 1; i++)
             mvwaddch(*win, j, i, ' ');
+
     for (int x = (GSIZE/8)*3 + 1; x < (GSIZE/8)*5 - 1; x++) {
-        mvwprintw(*win, ((GSIZE - 6)/5) + MENU_START_Y/2 , x, "%c" , '_');  // Top border
+        mvwprintw(*win, ((GSIZE - LENGHT_MTITLE)/5) + MENU_START_Y/2 , x, "%c" , '_');  // Top border
         mvwprintw(*win, ((GSIZE/8)*3), x, "%c" , '_');  // Bottom border
     }
-    for (int y = ((GSIZE - 6)/5) + 3; y <= ((GSIZE/8)*3) ; y++) {
+
+    // Left and right borders
+    for (int y = ((GSIZE - LENGHT_MTITLE)/5) + 3; y <= ((GSIZE/8)*3) ; y++) {
         mvwprintw(*win, y, (GSIZE/8)*3 , "%c" , '|');  // Left border
         mvwprintw(*win, y, (GSIZE/8)*5 - 1 , "%c" ,'|');  // Right border
     }
@@ -53,13 +56,14 @@ void printMenu(WINDOW **win, int cursor)
     wattron(*win, COLOR_PAIR(Ui));
     mvwprintw(*win, GSIZE/4 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
               MSG_TO_STRING(Msg_play));
-    mvwprintw(*win, (GSIZE - 6)/5 + (STATIC_SPACE * 3)/2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2,
+    mvwprintw(*win, (GSIZE - LENGHT_MTITLE)/5 + (STATIC_SPACE * 3)/2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2,
               MSG_TO_STRING(Msg_opts));
-    mvwprintw(*win, (GSIZE - 6)/5 + STATIC_SPACE * 2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2,
+    mvwprintw(*win, (GSIZE - LENGHT_MTITLE)/5 + STATIC_SPACE * 2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2,
               MSG_TO_STRING(Msg_quit));
     wattron(*win, COLOR_PAIR(Ui));
 
     wattron(*win, COLOR_PAIR(Evil_Ui));
+
     switch (cursor) {
         case Msg_play:
             mvwaddch(*win, GSIZE/4, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2 - 2,
@@ -87,11 +91,11 @@ void printMenu(WINDOW **win, int cursor)
 gstate handleSelection(int cursor)
 {
   switch(cursor) {
-    case 0:
+    case Msg_play:
       return Game;
-    case 1:
+    case Msg_opts:
         // TODO: for now just exit
-    case 2:
+    case Msg_quit:
       return Exit;
     default:
       return Exit;
@@ -125,37 +129,39 @@ gstate handleMenu(WINDOW **win, int *cursor)
   return Menu;
 }
 
-void PauseMenu(WINDOW **p_win)
+void pauseMenu(WINDOW **win)
 {
-    gstate flag = Pmenu;
-    char sprite[5][33] = {SPRITE_PAUSE};
+    bool flag = true;
 
-    while(flag == Pmenu){
-        wclear(*p_win);
-        printPauseMenu(p_win, sprite);
-        wrefresh(*p_win);
-        char user_input = wgetch(*p_win);
+
+    while(flag){
+        wclear(*win);
+        printPauseMenu(win);
+        wrefresh(*win);
+        char user_input = wgetch(*win);
         switch (user_input) {
             case Key_pause:
             case '\n':
             case ' ':
-                flag = Game;
+                flag = false;
                 break;
             default:
-                flag = Pmenu;
                 break;
         }
     }
 }
 
-void printPauseMenu(WINDOW **win, char sprite[5][33])
+void printPauseMenu(WINDOW **win)
 {
+    char sprite[LENGHT_PAUSE][WIDTH_PAUSE] = {SPRITE_PAUSE};
+    wattron(*win, COLOR_PAIR(Ui));
     box(*win, ACS_VLINE, ACS_HLINE);
 
     for(int j = 1; j < PSIZE/3 - 1; j++)
         for (int i = 1; i < PSIZE - 1; i++)
             mvwaddch(*win, j, i, ' ');
 
-    for(int i = 0; i < 5; i++)
+    for(int i = 0; i < LENGHT_PAUSE; i++)
         mvwprintw(*win, MENU_START_Y + i, PSIZE/6, "%s", sprite[i]); // Update row to 4 + i // Ensure the window is refreshed
+    wattroff(*win, COLOR_PAIR(Ui));
 }

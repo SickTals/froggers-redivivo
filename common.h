@@ -6,10 +6,11 @@
 #define UISIZE 8
 #define UDELAY 500000
 
+#define COLOR_BROWN 70
+
 #define NLANES 8
 #define CROC_CAP NLANES*NLANES
-
-#define COLOR_BROWN 70
+#define SIZE_PIXEL 2
 
 #define SPRITE_CURSOR '>'
 #define SPRITE_LIFE ">M<"
@@ -18,9 +19,12 @@
     "/W\\"
 #define SPRITE_GREN \
     '\\','/'
-#define SPRITE_CROC \
+#define SPRITE_CROC_LEFT \
     "}[][][]{<",    \
     " M   M   "
+#define SPRITE_CROC_RIGHT \
+    ">}[][][]{", \
+    "  M   M  "
 #define SPRITE_PROJ \
     '%',            \
     '#'
@@ -155,10 +159,7 @@ typedef struct Object {
 
 typedef struct Message {
     msgid id; 
-    pos p;
     obj objs[CROC_CAP];
-    bool shoots;
-    int sx_x;
 } msg;
 
 #endif

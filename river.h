@@ -32,12 +32,12 @@ typedef struct River {
 } rvr;
 
 rvr generateRiver();
-obj invalidateCrocodile();
+obj invalidateObject();
 msg initCrocodiles(enum Speeds speed);
 obj updateCrocodilePosition(obj croc, bool moveRight);
 void river(rvr r, enum Speeds speed, int pipefd[]);
 msg handleCroc(obj p[], msg c);
-void printCrocs(WINDOW **g_win, msg *c, int nspeeds);
+void printCrocs(WINDOW **g_win, msg *c, int nspeeds, bool isRight);
 void projectile(int pipefd[], int pipefd_projectiles[], bool isRight);
 void printCrocProjectile(WINDOW **g_win, msg p);
 

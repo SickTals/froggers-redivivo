@@ -1,126 +1,145 @@
 #include "frog.h"
+#include "common.h"
 #include "river.h"
 
 void frog(WINDOW **win, int pipefd[]){
     close(pipefd[0]);
     char user_input;
-    msg msg_frog;
-
+    msg frog_msg;
+    obj frog;
     while(true){ // Ciclo infinito chiuso dal padre
-
-        msg_frog.id = Id_frog;
-        msg_frog.p.y = 0;
-        msg_frog.p.x = 0;
-        msg_frog.shoots = false;
+        frog_msg.id = Id_frog;
+        frog.y = 0;
+        frog.x = 0;
+        frog.shoots = false;
         user_input = wgetch(*win);
         flushinp();
-
         switch(user_input){
             case Key_up: 
-                msg_frog.p.y = Key_up;
+                frog.y = Key_up;
                 break;
             case Key_down:
-                msg_frog.p.y = Key_down;
+                frog.y = Key_down;
                 break;
             case Key_left:
-                msg_frog.p.x = Key_left;
+                frog.x = Key_left;
                 break;
             case Key_right:
-                msg_frog.p.x = Key_right;
+                frog.x = Key_right;
                 break;
             case Key_shoot:
-                msg_frog.shoots = true;
+                frog.shoots = true;
                 break;
             case Key_pause:
-                msg_frog.id = Id_pause;
+                frog_msg.id = Id_pause;
                 break;
             case Key_quit:
-                msg_frog.id = Id_quit;
+                frog_msg.id = Id_quit;
                 break;
         }
+        frog_msg.objs[0] = frog;
         // Scrittura su pipe della posizione dell'oggetto
-        (void)write(pipefd[1], &msg_frog, sizeof(msg_frog));
+        (void)write(pipefd[1], &frog_msg, sizeof(frog_msg));
     }
 }
 
-msg handleFrog(pos p, msg f)
+msg handleFrog(obj incoming, obj frog)
 {
-    if (p.y == Key_up)
-        f.p.y -= Y_STEP;
-    else if (p.y == Key_down)
-        f.p.y += Y_STEP;
-    if (p.x == Key_left)
-        f.p.x -= X_STEP;
-    else if (p.x == Key_right)
-        f.p.x += X_STEP;
+    msg frog_msg;
 
-    if (f.p.y <= 1)
-        f.p.y = 2;
-    else if (f.p.y >= GSIZE/2 - 1)
-        f.p.y -= Y_STEP;
-    if (f.p.x < 0)
-        f.p.x += X_STEP;
-    else if (f.p.x > GSIZE - 2)
-        f.p.x -= X_STEP;
+    if (incoming.y == Key_up)
+        frog.y -= SIZE_PIXEL;
+    else if (incoming.y == Key_down)
+        frog.y += SIZE_PIXEL;
+    if (incoming.x == Key_left)
+        frog.x -= SIZE_PIXEL;
+    else if (incoming.x == Key_right)
+        frog.x += SIZE_PIXEL;
 
-    return f;
+    if (frog.y <= 1)
+        frog.y = 2;
+    else if (frog.y >= GSIZE/2 - 1)
+        frog.y -= SIZE_PIXEL;
+    if (frog.x < 1)
+        frog.x = 1;
+    else if (frog.x >= GSIZE - 2)
+        frog.x = GSIZE - WIDTH_FROG - 1;
+    frog_msg.objs[0] = frog;
+    return frog_msg;
 }
 
-void printFrog(WINDOW **g_win, msg f)
+void printFrog(WINDOW **win, obj frog)
 {
-    char sprite_frog[2][3]={SPRITE_FROG};
-    wattron(*g_win, COLOR_PAIR(Grass_Frog));
-    for(int i = 0; i < 3; i++){
-        mvwaddch(*g_win, f.p.y - 1, f.p.x + i, sprite_frog[0][i]);
-        mvwaddch(*g_win, f.p.y, f.p.x + i, sprite_frog[1][i]);
+    char sprite_frog[SIZE_PIXEL][WIDTH_FROG] = {SPRITE_FROG};
+    wattron(*win, COLOR_PAIR(Grass_Frog));
+    for(int i = 0; i <= SIZE_PIXEL; i++){
+        mvwaddch(*win, frog.y - 1, frog.x + i, sprite_frog[0][i]);
+        mvwaddch(*win, frog.y, frog.x + i, sprite_frog[1][i]);
     }
-    wattroff(*g_win, COLOR_PAIR(Grass_Frog));
+    wattroff(*win, COLOR_PAIR(Grass_Frog));
+
+}
+
+void detectGrenadeCollision(obj grenade[N_grenades], int pipefd[])
+{
+    msg tmp;
+        ssize_t n = read(pipefd[0], &tmp, sizeof(tmp));
+        if (n == sizeof(tmp)) {
+            if (tmp.objs[Idx_sx_grenade].x == INVALID_CROC)
+                grenade[Idx_sx_grenade].x = 0;
+            if (tmp.objs[Idx_dx_grenade].x == INVALID_CROC)
+                grenade[Idx_dx_grenade].x = GSIZE;
+        }
 
 }
 
 void granade(int pipefd[], int pipefd_grenade[]) {
-    msg g;
+    msg grenade_msg;
+
 
     close(pipefd[0]);
     int flags = fcntl(pipefd_grenade[0], F_GETFL, 0);
     fcntl(pipefd_grenade[0], F_SETFL, flags | O_NONBLOCK);
 
     while (true) {
-        ssize_t bytes_read = read(pipefd_grenade[0], &g, sizeof(g));
-        if (bytes_read != sizeof(g) || !(g.shoots))
+        ssize_t bytes_read = read(pipefd_grenade[0], &grenade_msg, sizeof(msg));
+        if (bytes_read != sizeof(msg) || !(grenade_msg.objs[0].shoots))
             continue;
 
-        g.id = Id_granade;
-        g.sx_x = g.p.x - 1;
-        g.p.x += strlen(SPRITE_LIFE);
+        obj grenade[2] = {
+            {
+                .y = grenade_msg.objs[0].y,
+                .x = grenade_msg.objs[0].x - 1
+            },  // left
+            {
+                .y = grenade_msg.objs[0].y,
+                .x = grenade_msg.objs[0].x + WIDTH_FROG
+            }  // right
+        };
+        grenade_msg.id = Id_granade;
 
-        while (g.p.x < GSIZE || g.sx_x > 0) {
-            msg tmp;
-            ssize_t n = read(pipefd_grenade[0], &tmp, sizeof(tmp));
-            if (n == sizeof(tmp)) {
-                if (tmp.sx_x == INVALID_CROC)
-                    g.sx_x = 0;
-                if (tmp.p.x == INVALID_CROC)
-                    g.p.x = GSIZE;
-            }
-            g.p.x++;
-            g.sx_x--;
-            write(pipefd[1], &g, sizeof(g));
+        while (grenade[Idx_sx_grenade].x > 0 || grenade[Idx_dx_grenade].x < GSIZE) {
+            detectGrenadeCollision(grenade, pipefd_grenade);
+
+            grenade[Idx_sx_grenade].x--;
+            grenade[Idx_dx_grenade].x++;
+            grenade_msg.objs[Idx_sx_grenade] = grenade[Idx_sx_grenade];
+            grenade_msg.objs[Idx_dx_grenade] = grenade[Idx_dx_grenade];
+
+            write(pipefd[1], &grenade_msg, sizeof(msg));
             usleep(UDELAY/3);
         }
         usleep(UDELAY);
     }
 }
 
-void printGranade(WINDOW **g_win, msg g)
+void printGranade(WINDOW **win, obj grenade[N_grenades])
 {
-    char sprite_gren[2]= {SPRITE_GREN};
-
-
-    wattron(*g_win, COLOR_PAIR(Gren));
-    mvwaddch(*g_win, g.p.y - 1, g.p.x, sprite_gren[0]);
-    mvwaddch(*g_win, g.p.y, g.p.x, sprite_gren[1]);
-    mvwaddch(*g_win, g.p.y - 1 , g.sx_x, sprite_gren[1]);
-    mvwaddch(*g_win, g.p.y, g.sx_x, sprite_gren[0]);
-    wattroff(*g_win, COLOR_PAIR(Gren));
+    char sprite_gren[N_grenades] = {SPRITE_GREN};
+    wattron(*win, COLOR_PAIR(Gren));
+    mvwaddch(*win, grenade[Idx_sx_grenade].y, grenade[Idx_sx_grenade].x, sprite_gren[0]);
+    mvwaddch(*win, grenade[Idx_sx_grenade].y - 1 , grenade[Idx_sx_grenade].x, sprite_gren[1]);
+    mvwaddch(*win, grenade[Idx_dx_grenade].y, grenade[Idx_dx_grenade].x, sprite_gren[1]);
+    mvwaddch(*win, grenade[Idx_dx_grenade].y - 1, grenade[Idx_dx_grenade].x, sprite_gren[0]);
+    wattroff(*win, COLOR_PAIR(Gren));
 }

@@ -12,7 +12,7 @@
 #define DEN_WIDTH 7
 #define DEN_HEIGHT 3
 
-bool den(bool dens[5], pos frog_pos);
+bool den(bool dens[NDENS], obj frog);
 void printDens(WINDOW **win, bool dens[NDENS]);
 
 #endif
