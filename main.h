@@ -47,7 +47,7 @@ gstate collisions(msg msgs[], bool dens[NDENS], bool isRight, int pipefd_project
 bool sendGrenadeShot(int pipefd[], msg f);
 int sendProjectileShot(int pipefd[], obj c, int n);
 int updateProjectileCount(obj p[]);
-msg handleObject(msg msgs[NTASKS + 1], int pipefd_grenade[], int pipefd_projectiles[], bool *grenade_active, int *croc_projectiles_active);
+msg handleObject(msg msgs[NTASKS + 1], int pipefd_grenade[], int pipefd_projectiles[], bool *grenade_active, int *croc_projectiles_active, bool isRight);
 gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDENS]);
 
 #endif

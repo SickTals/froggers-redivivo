@@ -1,6 +1,7 @@
 #include "ui.h"
 #include "common.h"
 #include "curses.h"
+#include "river.h"
 
 void printMenuUi(WINDOW **win)
 {
@@ -11,7 +12,7 @@ void printMenuUi(WINDOW **win)
         for (int i = 1; i < GSIZE/2 - 1; i++)
             mvwaddch(*win, i, j, ' ');
 
-    bool flag;
+    bool flag = COIN_FLIP;
     wattron(*win, COLOR_PAIR(Evil_Ui));
     box(*win, ACS_VLINE, ACS_HLINE);
     for(int i = 0, j = 0; i < LENGHT_STITLE; i++) {
