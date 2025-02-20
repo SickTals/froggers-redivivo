@@ -22,12 +22,14 @@ int main()
                 flag = Game;
                 break;
             case Win:
-                flag = Game;
                 score += 1000;
+                flag = Game;
                 break;
             case Menu:
                 lives = NLIVES;
                 score = 0;
+                for (int i = 0; i < NDENS; i++)
+                    dens[i] = false;
                 flag = menu(&g_win, &ui_win);
                 break;
             case Exit:
@@ -38,7 +40,7 @@ int main()
                 break;
             case EndW:
                 for (int h = 0; h < 10; h++) {
-                    end_screenW(&g_win, dens, h);
+                    end_screen(&g_win, dens, h, (const char*[]){SPRITE_WIN}, Evil_Ui);
                     wrefresh(g_win);
                     usleep(UDELAY/5);
                 }
@@ -46,7 +48,7 @@ int main()
                 break;
             case EndL:
                 for (int h = 0; h < 10; h++) {
-                    end_screenL(&g_win, dens, h);
+                    end_screen(&g_win, dens, h, (const char*[]){SPRITE_LOSE}, Alt_E_Ui);
                     wrefresh(g_win);
                     usleep(UDELAY/5);
                 }
@@ -57,14 +59,12 @@ int main()
                 break;
         }
     }
-
     kill_screen(&g_win, &ui_win, dens);
+
     return 0;
 }
-void end_screenW(WINDOW **win, bool dens[], int h){
 
-    char sprite_win[5][41] = {SPRITE_WIN};
-
+void end_screen(WINDOW **win, bool dens[], int h, const char *sprite[], int alt_color) {
     wattron(*win, COLOR_PAIR(Ui));
     box(*win, ACS_VLINE, ACS_HLINE);
     for(int j = 1; j < GSIZE/2 - 1; j++)
@@ -73,38 +73,17 @@ void end_screenW(WINDOW **win, bool dens[], int h){
     switch((h % 2)){
         case 1:
             for (int i = 0; i < 5; i++)
-                mvwprintw(*win, (CENTER_X / 2) - 3 + i, CENTER_X - strlen(sprite_win[0]) / 2, "%s", sprite_win[i]);
+                mvwprintw(*win, (CENTER_X / 2) - 3 + i, CENTER_X - strlen(sprite[i]) / 2, "%s", sprite[i]);
             break;
         default:
-            wattron(*win, COLOR_PAIR(Evil_Ui));
+            wattron(*win, COLOR_PAIR(alt_color));
             for (int i = 0; i < 5; i++)
-                mvwprintw(*win, (CENTER_X / 2) - 3 + i, CENTER_X - strlen(sprite_win[0]) / 2, "%s", sprite_win[i]);
-            wattron(*win, COLOR_PAIR(Evil_Ui));
+                mvwprintw(*win, (CENTER_X / 2) - 3 + i, CENTER_X - strlen(sprite[i]) / 2, "%s", sprite[i]);
+            wattroff(*win, COLOR_PAIR(alt_color));
     }
     wattroff(*win, COLOR_PAIR(Ui));
 }
 
-void end_screenL(WINDOW **win, bool dens[], int h){
-    char sprite_lose[5][44] = {SPRITE_LOSE};
-
-    wattron(*win, COLOR_PAIR(Ui));
-    box(*win, ACS_VLINE, ACS_HLINE);
-    for(int j = 1; j < GSIZE/2 - 1; j++)
-        for (int i = 1; i < GSIZE - 1; i++)
-            mvwaddch(*win, j, i, ' ');
-    switch((h % 2)){
-        case 1:
-            for (int i = 0; i < 5; i++)
-                mvwprintw(*win, (CENTER_X / 2) - 3 + i, CENTER_X - strlen(sprite_lose[0]) / 2, "%s", sprite_lose[i]);
-            break;
-        default:
-            wattron(*win, COLOR_PAIR(Alt_E_Ui));
-            for (int i = 0; i < 5; i++)
-                mvwprintw(*win, (CENTER_X / 2) - 3 + i, CENTER_X - strlen(sprite_lose[0]) / 2, "%s", sprite_lose[i]);
-            wattron(*win, COLOR_PAIR(Alt_E_Ui));
-    }
-    wattroff(*win, COLOR_PAIR(Ui));
-}
 /*
  * Inizializza e imposta la schermata
  * Le finestre vengono posizionate centrate
@@ -239,23 +218,20 @@ gstate hasWon(bool dens[NDENS])
 
 void init_bckg(WINDOW **win)
 {
-    int y_g = GSIZE/2 - 1;
-    int start_y_d = GSIZE/2 - 2 - 2 - 16;
-
     wattron(*win, COLOR_PAIR(Grass_Frog));
-    for(int i = 0; i < GSIZE; i++) {
-        mvwaddch(*win, y_g - 1, i, ' ');
-        mvwaddch(*win, y_g - 2, i, ' ');
+    for(int i = 1; i < GSIZE - 1; i++) {
+        mvwaddch(*win, SIDEWALK_Y - 1, i, ' ');
+        mvwaddch(*win, SIDEWALK_Y, i, ' ');
     }
 
-    for(int j = 1; j <= start_y_d; j++)
-        for(int i = 0; i < GSIZE; i++)
+    for(int j = 1; j <= NLANES; j++)
+        for(int i = 1; i < GSIZE - 1; i++)
             mvwaddch(*win, j, i, ' ');
     wattroff(*win, COLOR_PAIR(Grass_Frog));
 
     wattron(*win, COLOR_PAIR(River));
-    for(int j = start_y_d + 1; j <= y_g - 3; j++)
-        for(int i = 1; i < GSIZE; i++)
+    for(int j = NLANES + 1; j < SIDEWALK_Y - 1; j++)
+        for(int i = 1; i < GSIZE - 1; i++)
             mvwaddch(*win, j, i, ' ');
     wattroff(*win, COLOR_PAIR(River));
 }
@@ -286,14 +262,14 @@ void grenadeCollision(msg g, msg p, int pipefd_projectiles[], int pipefd_grenade
 
 gstate collisions(msg msgs[], bool dens[NDENS], bool isRight, int pipefd_projectiles[], int pipefd_grenade[], int proj_active)
 {
-    if (//isDrawning(msgs[Id_frog].objs[0], &msgs[Id_croc_slow], NSPEEDS) ||
+    if (isDrawning(msgs[Id_frog].objs[0], &msgs[Id_croc_slow], NSPEEDS) ||
         isShot(proj_active, msgs[Id_frog].objs[0], msgs[Id_croc_projectile])) {
         return Dies;
     }
     if (den(dens, msgs[Id_frog].objs[0]))
         return Win;
     if (hasWon(dens))
-        return Exit;
+        return EndW;
 
     grenadeCollision(msgs[Id_granade], msgs[Id_croc_projectile], pipefd_projectiles, pipefd_grenade);
 
@@ -425,7 +401,9 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
         
         (void)read(pipefd[0], &msgs[NTASKS], sizeof(msgs[NTASKS]));
 
-        if (msgs[NTASKS].id == Id_pause) {
+        if (lives <= 0) {
+            flag = EndL;
+        } else if (msgs[NTASKS].id == Id_pause) {
             for (int i = 0; i < NTASKS; i++)
                 kill(pids[i], SIGSTOP);
             flushinp();
@@ -433,8 +411,6 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
             for (int i = 0; i < NTASKS; i++)
                 kill(pids[i], SIGCONT);
         } else if (msgs[NTASKS].id == Id_quit) {
-            for (int i = 0; i < NDENS; i++)
-                dens[i] = false;
             flag = Menu;
         }
 
