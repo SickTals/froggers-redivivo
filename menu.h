@@ -21,7 +21,7 @@ enum MenuMsg {
     Msg_all
 };
 
-void initMenu(WINDOW **win);
+void initMenu(WINDOW **win, const char *sprite[]);
 void menuPrintSelector(WINDOW **win, int sel);
 gstate menu(WINDOW **g_win, WINDOW **ui_win);
 void printMenu(WINDOW **win, int cursor);

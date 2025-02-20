@@ -94,7 +94,7 @@ void init_screen(WINDOW **g_win, WINDOW **ui_win)
     noecho();
     curs_set(false);
     cbreak();
-    //start_color();
+    start_color();
     *g_win = newwin(GSIZE/2, GSIZE,
                     (LINES - GSIZE/2)/2, ((COLS - GSIZE)/2) - UISIZE/2);
     *ui_win = newwin(GSIZE/2, UISIZE,
@@ -364,13 +364,18 @@ msg handleObject(msg msgs[NTASKS + 1], int pipefd_grenade[], int pipefd_projecti
 
 gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDENS])
 {
-    WINDOW *p_win;
+    WINDOW *p_win = newwin(PSIZE/3, PSIZE, PWIN_START_Y, PWIN_START_X);
     gstate flag = Game;
     int pipefd[2];
     int pipefd_grenade[2];
     int pipefd_projectiles[2];
     pid_t pids[NTASKS];
+
     rvr r = generateRiver();
+    msg msgs[NTASKS + 1];
+    initObjects(msgs);
+    bool grenade_active = false;  // Add this flag
+    int croc_projectiles_active = 0;
 
     if (pipe(pipefd) == -1 ||
         pipe(pipefd_projectiles) == -1 ||
@@ -378,9 +383,6 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
         perror("Pipe call");
         exit(1);
     }
-
-    p_win = newwin(PSIZE/3, PSIZE, PWIN_START_Y, PWIN_START_X);
-    box(p_win, ACS_VLINE, ACS_HLINE);
 
     for (int i = 0; i < NTASKS; i++) {
         pids[i] = fork();
@@ -391,18 +393,13 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
             child_task(i, g_win, pipefd, pipefd_projectiles, pipefd_grenade, r);
     }
 
-    msg msgs[NTASKS + 1];
-    initObjects(msgs);
-    bool grenade_active = false;  // Add this flag
-    int croc_projectiles_active = 0;
+    wclear(*g_win);
+    wclear(*ui_win);
     close(pipefd[1]);
     close(pipefd_projectiles[0]);
     close(pipefd_grenade[0]);
 
     while (flag == Game) {
-        wclear(*g_win);
-        wclear(*ui_win);
-
         printUi(ui_win, msgs[Id_timer], lives, score);
         init_bckg(g_win);
         printDens(g_win, dens);
@@ -410,11 +407,8 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
         printFrog(g_win, msgs[Id_frog].objs[0]);
         printCrocProjectile(g_win, msgs[Id_croc_projectile]);
         printGranade(g_win, msgs[Id_granade].objs);
-        wattron(*ui_win, COLOR_PAIR(Ui));
         wattron(*g_win, COLOR_PAIR(Ui));
         box(*g_win, ACS_VLINE, ACS_HLINE);
-        box(*ui_win, ACS_VLINE, ACS_HLINE);
-        wattroff(*ui_win, COLOR_PAIR(Ui));
         wattroff(*g_win, COLOR_PAIR(Ui));
 
         wrefresh(*g_win);
@@ -430,11 +424,11 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
             for (int i = 0; i < NTASKS; i++)
                 kill(pids[i], SIGSTOP);
             flushinp();
-            pauseMenu(&p_win);
+            PauseMenu(&p_win);
             for (int i = 0; i < NTASKS; i++)
                 kill(pids[i], SIGCONT);
         } else if (msgs[NTASKS].id == Id_quit) {
-            flag = Menu;
+            flag = EndL;
         }
 
         msgs[msgs[NTASKS].id] = handleObject(msgs, pipefd_grenade, pipefd_projectiles, &grenade_active, &croc_projectiles_active, r.isRight);
@@ -442,7 +436,6 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
 
     wclear(*g_win);
     wclear(*ui_win);
-    wrefresh(*g_win);
     wrefresh(*ui_win);
 
     close(pipefd[0]);

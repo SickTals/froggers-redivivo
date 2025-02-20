@@ -2,10 +2,8 @@
 #include "common.h"
 #include "curses.h"
 
-void printMenuUi(WINDOW **win)
+void printMenuUi(WINDOW **win, const char *sprite[])
 {
-    char sprite[24][4] = {SPRITE_STITLE};
-
     wattron(*win, COLOR_PAIR(Ui));
     box(*win, ACS_VLINE, ACS_HLINE);
     for(int j = 1; j < UISIZE - 1; j++)

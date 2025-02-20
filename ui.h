@@ -13,7 +13,7 @@
 #define LIVES_Y 6
 #define SCORE_Y 11
 
-void printMenuUi(WINDOW **win);
+void printMenuUi(WINDOW **win, const char *sprite[]);
 void timer(int pipefd[]);
 void printUi(WINDOW **win, msg t, int lives, int score);
 

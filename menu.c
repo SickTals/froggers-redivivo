@@ -13,22 +13,25 @@ gstate menu(WINDOW **g_win, WINDOW **ui_win)
 {
     int cursor = 0;
     gstate flag = Menu;
-    printMenuUi(ui_win);
-    
+    printMenuUi(ui_win, (const char*[]){SPRITE_STITLE});
+
+
     while(flag == Menu) {
+        initMenu(g_win, (const char*[]){SPRITE_MTITLE});
         printMenu(g_win, cursor);
+        wrefresh(*g_win);
         flag = handleMenu(g_win, &cursor);
     }
     return flag;
 }
 
-void initMenu(WINDOW **win){
-    box(*win, ACS_VLINE, ACS_HLINE);
+void initMenu(WINDOW **win, const char *sprite[]){
 
+    wattron(*win, COLOR_PAIR(Ui));
+    box(*win, ACS_VLINE, ACS_HLINE);
     for(int j = 1; j < GSIZE/2 - 1; j++)
         for (int i = 1; i < GSIZE - 1; i++)
             mvwaddch(*win, j, i, ' ');
-
     for (int x = (GSIZE/8)*3 + 1; x < (GSIZE/8)*5 - 1; x++) {
         mvwprintw(*win, ((GSIZE - 6)/5) + MENU_START_Y/2 , x, "%c" , '_');  // Top border
         mvwprintw(*win, ((GSIZE/8)*3), x, "%c" , '_');  // Bottom border
@@ -37,6 +40,13 @@ void initMenu(WINDOW **win){
         mvwprintw(*win, y, (GSIZE/8)*3 , "%c" , '|');  // Left border
         mvwprintw(*win, y, (GSIZE/8)*5 - 1 , "%c" ,'|');  // Right border
     }
+    wattroff(*win, COLOR_PAIR(Ui));
+
+    wattron(*win, COLOR_PAIR(Evil_Ui));
+    for(int i = 0; i < 6; i++)
+        mvwprintw(*win, MENU_START_Y + i, (GSIZE - PSIZE)/2, "%s", sprite[i]);
+    wattroff(*win, COLOR_PAIR(Evil_Ui));
+
 }
 
 void menuPrintSelector(WINDOW **win, int sel){
@@ -68,16 +78,11 @@ void menuPrintSelector(WINDOW **win, int sel){
 
 void printMenu(WINDOW **win, int cursor)
 {
-    char froggers_sprite[6][43] = {SPRITE_MTITLE};
     wattron(*win, COLOR_PAIR(Ui));
-    initMenu(win);
     menuPrintSelector(win, Msg_all);
     wattroff(*win, COLOR_PAIR(Ui));
 
-
     wattron(*win, COLOR_PAIR(Evil_Ui));
-    for(int i = 0; i < 6; i++)
-        mvwprintw(*win, MENU_START_Y + i, (GSIZE - PSIZE)/2, "%s", froggers_sprite[i]);
     switch (cursor) {
         case Msg_play:
             mvwaddch(*win, GSIZE/4, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2 - 2,
@@ -96,7 +101,6 @@ void printMenu(WINDOW **win, int cursor)
             break;
     }
     wattroff(*win, COLOR_PAIR(Evil_Ui));
-    wrefresh(*win);
 }
 
 gstate handleSelection(int cursor)
@@ -165,12 +169,16 @@ void PauseMenu(WINDOW **p_win)
 
 void printPauseMenu(WINDOW **win, char sprite[5][33])
 {
+    wattron(*win, COLOR_PAIR(Ui));
     box(*win, ACS_VLINE, ACS_HLINE);
 
     for(int j = 1; j < PSIZE/3 - 1; j++)
         for (int i = 1; i < PSIZE - 1; i++)
             mvwaddch(*win, j, i, ' ');
 
+    wattron(*win, COLOR_PAIR(Alt_E_Ui));
     for(int i = 0; i < 5; i++)
         mvwprintw(*win, MENU_START_Y + i, PSIZE/6, "%s", sprite[i]); // Update row to 4 + i // Ensure the window is refreshed
+    wattroff(*win, COLOR_PAIR(Alt_E_Ui));
+    wattroff(*win, COLOR_PAIR(Ui));
 }
