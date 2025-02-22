@@ -12,6 +12,9 @@
 #define CROC_CAP NLANES*NLANES
 #define SIZE_PIXEL 2
 
+#define CALC_LANE(y) (GSIZE/2 - 2 - y - 1) / 2
+#define CALC_DIRECTION(isRight, lane) (isRight + lane) % 2 == 0;
+
 #define SPRITE_CURSOR '>'
 #define SPRITE_LIFE ">M<"
 #define SPRITE_FROG \
@@ -125,7 +128,8 @@ typedef enum GameStatus {
     Win,
     Pmenu,
     EndW,
-    EndL
+    EndL,
+    Options
 } gstate;
 
 typedef enum {
