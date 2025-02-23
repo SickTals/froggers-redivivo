@@ -21,8 +21,8 @@ bool den(bool dens[NDENS], obj frog)
 
 void printDens(WINDOW **win, bool dens[NDENS])
 {
-	char sprite_den_open[DEN_HEIGHT][DEN_WIDTH] = {SPRITE_DEN_OPEN};
-    char sprite_den_close[DEN_HEIGHT][DEN_WIDTH] = {SPRITE_DEN_CLOSE};
+	char sprite_den_open[DEN_HEIGHT][DEN_WIDTH] = { SPRITE_DEN_OPEN };
+    char sprite_den_close[DEN_HEIGHT][DEN_WIDTH] = { SPRITE_DEN_CLOSE };
 
     wattron(*win, COLOR_PAIR(Dens));
     for (int i = 0; i < DEN_HEIGHT; i++) {

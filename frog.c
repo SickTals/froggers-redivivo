@@ -90,8 +90,8 @@ void detectGrenadeCollision(obj grenade[N_grenades], int pipefd[])
             if (tmp.objs[Idx_dx_grenade].x == INVALID_CROC)
                 grenade[Idx_dx_grenade].x = GSIZE;
         }
-}
 
+}
 
 void granade(int pipefd[], int pipefd_grenade[]) {
     msg grenade_msg;

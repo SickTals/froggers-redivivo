@@ -68,14 +68,14 @@ obj updateCrocodile(obj c, bool isRight, int *active_crocs)
     if (c.x == INVALID_CROC || c.y == INVALID_CROC)
         return c;
 
-    int lane = CALC_LANE(c.y);
+    int lane = (GSIZE/2 - 2 - c.y - 1) / 2;
     
     if (!(IS_VALID_LANE(lane))) {
         c = invalidateObject();
         return c;
     }
     
-    bool moveRight = CALC_DIRECTION(isRight, lane);
+    bool moveRight = (isRight + lane) % 2 == 0;
     c = updateCrocodilePosition(c, moveRight);
     
     if (c.x != INVALID_CROC)
@@ -99,7 +99,7 @@ obj compactCrocs(obj c[], int i, int *validIdx)
 obj spawnCrocodile(obj c[], int lane, bool isRight, int validIdx)
 {
     int lane_y = GSIZE/2 - 2 - (1 + lane) * 2;
-    bool moveRight = CALC_DIRECTION(isRight, lane);
+    bool moveRight = (isRight + lane) % 2 == 0;
     int spawn_x = moveRight ? 0 : GSIZE - SIZE_CROC;
     
     if (!canSpawnCrocodile(c, validIdx, lane_y, moveRight, spawn_x))
@@ -180,24 +180,6 @@ msg handleCroc(obj p[], msg c) {
     return c;
 }
 
-int slideWithCroc(obj f, obj c[], bool isRight) {
-    if (f.y >= GSIZE / 2 - 1 || f.y <= (GSIZE / 2) - 2 - (NLANES * SIZE_PIXEL))
-        return 0;
-
-    for (int i = 0; i < CROC_CAP; i++) {
-        if (c[i].y == INVALID_CROC ||
-            c[i].x == INVALID_CROC ||
-            f.y != c[i].y)
-            continue;
-
-        if (f.x >= c[i].x && f.x < c[i].x + SIZE_CROC) {
-            bool moveRight = CALC_DIRECTION(isRight, CALC_LANE(c[i].y));
-            return (moveRight ? 1 : -1);
-        }
-    }
-    return 0;
-}
-
 void printCrocs(WINDOW **g_win, msg *c, int nspeeds, bool isRight)
 {
     char sprite_left[SIZE_PIXEL][SIZE_CROC] = {SPRITE_CROC_LEFT};
@@ -209,8 +191,8 @@ void printCrocs(WINDOW **g_win, msg *c, int nspeeds, bool isRight)
         for (int j = 0; j < CROC_CAP; j++) {
             if (c[s].objs[j].x == INVALID_CROC || c[s].objs[j].y == INVALID_CROC)
                 break;
-            int lane = CALC_LANE(c[s].objs[j].y);
-            bool moveRight = CALC_DIRECTION(isRight, lane);
+            int lane = (GSIZE/2 - 2 - c[s].objs[j].y - 1) / 2;
+            bool moveRight = ((int)isRight + lane) % 2 == 0;
             for (int i = 0; i < SIZE_CROC; i++) {
                 if (!(IS_ON_SCREEN(c[s].objs[j].x + i)))
                     continue;
@@ -267,7 +249,7 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
                             lane >= NLANES) {
                             break;
                         }
-                        bool moveRight = CALC_DIRECTION(isRight, lane);
+                        bool moveRight = ((int)isRight + lane) % 2 == 0;
                         
                         projectiles.objs[j].y = tmp.objs[i].y;
                         projectiles.objs[j].x = moveRight ? 
@@ -289,7 +271,8 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
                 continue;
                 
             has_active = true;
-            bool moveRight = CALC_DIRECTION(isRight, CALC_LANE(projectiles.objs[i].y));
+            int lane = (GSIZE/2 - 2 - projectiles.objs[i].y - 1) / 2;
+            bool moveRight = ((int)isRight + lane) % 2 == 0;
             
             if (moveRight) {
                 projectiles.objs[i].x += MOVE_STEP;

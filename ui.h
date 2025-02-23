@@ -12,10 +12,8 @@
 #define UI_CENTER_X 3
 #define LIVES_Y 6
 #define SCORE_Y 11
-#define LENGHT_STITLE 24
-#define WIDTH_STITLE 4
 
-void printMenuUi(WINDOW **win);
+void printMenuUi(WINDOW **win, const char *sprite[]);
 void timer(int pipefd[]);
 void printUi(WINDOW **win, msg t, int lives, int score);
 

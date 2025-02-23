@@ -54,8 +54,6 @@ int main()
                 }
                 flag = Menu;
                 break;
-            case Options:
-                //flag = optionsMenu(&g_win, &ui_win);
             default:
                 flag = Exit;
                 break;
@@ -72,18 +70,16 @@ void end_screen(WINDOW **win, bool dens[], int h, const char *sprite[], int alt_
     for(int j = 1; j < GSIZE/2 - 1; j++)
         for (int i = 1; i < GSIZE - 1; i++)
             mvwaddch(*win, j, i, ' ');
-    if(h % 2) {
-        for (int i = 0; i < 5; i++) {
-            mvwprintw(*win, (CENTER_X / 2) - 3 + i, CENTER_X - strlen(sprite[i]) / 2,
-                      "%s", sprite[i]);
-        }
-    } else {
-        wattron(*win, COLOR_PAIR(alt_color));
-        for (int i = 0; i < 5; i++) {
-            mvwprintw(*win, (CENTER_X / 2) - 3 + i, CENTER_X - strlen(sprite[i]) / 2,
-                      "%s", sprite[i]);
-        }
-        wattroff(*win, COLOR_PAIR(alt_color));
+    switch((h % 2)){
+        case 1:
+            for (int i = 0; i < 5; i++)
+                mvwprintw(*win, (CENTER_X / 2) - 3 + i, CENTER_X - strlen(sprite[i]) / 2, "%s", sprite[i]);
+            break;
+        default:
+            wattron(*win, COLOR_PAIR(alt_color));
+            for (int i = 0; i < 5; i++)
+                mvwprintw(*win, (CENTER_X / 2) - 3 + i, CENTER_X - strlen(sprite[i]) / 2, "%s", sprite[i]);
+            wattroff(*win, COLOR_PAIR(alt_color));
     }
     wattroff(*win, COLOR_PAIR(Ui));
 }
@@ -98,7 +94,7 @@ void init_screen(WINDOW **g_win, WINDOW **ui_win)
     noecho();
     curs_set(false);
     cbreak();
-    //start_color();
+    start_color();
     *g_win = newwin(GSIZE/2, GSIZE,
                     (LINES - GSIZE/2)/2, ((COLS - GSIZE)/2) - UISIZE/2);
     *ui_win = newwin(GSIZE/2, UISIZE,
@@ -126,8 +122,8 @@ void initObjects(msg msgs[])
     msgs[Id_timer].objs[Id_timer].y = TIME;
     msgs[Id_frog].objs[0].y = SIDEWALK_Y;
     msgs[Id_frog].objs[0].x = CENTER_X;
-    msgs[Id_granade].objs[Idx_sx_grenade].x = 0;
-    msgs[Id_granade].objs[Idx_dx_grenade].x = GSIZE;
+    msgs[Id_granade].objs[1].x = GSIZE;
+    msgs[Id_granade].objs[0].x = 0;
     for (int i = Slow; i <= Id_croc_projectile; i++)
         for (int j = 0; j < CROC_CAP; j++)
             msgs[i].objs[j] = invalidateObject();
@@ -243,20 +239,18 @@ void init_bckg(WINDOW **win)
 void grenadeCollision(msg g, msg p, int pipefd_projectiles[], int pipefd_grenade[])
 {
     msg tmp_g = {
-        .objs[Idx_dx_grenade].x = 0,
-        .objs[Idx_sx_grenade].x = 0
+        .objs[1].x = 0,
+        .objs[0].x = 0
     };
     msg tmp_p = {
         .objs[CROC_CAP - 1].x = INVALID_CROC
     };
 
     for (int i = 0; i < CROC_CAP - 1; i++) {
-        if (g.objs[Idx_sx_grenade].x == p.objs[i].x &&
-            g.objs[Idx_sx_grenade].y == p.objs[i].y) {
-            tmp_g.objs[Idx_sx_grenade].x = INVALID_CROC;
-        } else if (g.objs[Idx_dx_grenade].x == p.objs[i].x &&
-                   g.objs[Idx_dx_grenade].y == p.objs[i].y) {
-            tmp_g.objs[Idx_dx_grenade].x = INVALID_CROC;
+        if (g.objs[0].x == p.objs[i].x && g.objs[0].y == p.objs[i].y) {
+            tmp_g.objs[0].x = INVALID_CROC;
+        } else if (g.objs[1].x == p.objs[i].x && g.objs[1].y == p.objs[i].y) {
+            tmp_g.objs[1].x = INVALID_CROC;
         } else {
             continue;
         }
@@ -313,6 +307,28 @@ int updateProjectileCount(obj p[])
 
 }
 
+int isOnCrocodile(obj f, obj c[], bool isRight) {
+    if (f.y >= SIDEWALK_Y - 1 || f.y <= SIDEWALK_Y - BOX_BORDER - (NLANES * SIZE_PIXEL))
+        return 0;
+
+    for (int i = 0; i < CROC_CAP; i++) {
+        if (c[i].y == INVALID_CROC ||
+            c[i].x == INVALID_CROC ||
+            f.y != c[i].y)
+            continue;
+
+        if (f.x >= c[i].x && f.x <= c[i].x + SIZE_CROC - 1) {
+            // Calculate which direction the crocodile is moving
+            int lane = (GSIZE / 2 - 2 - c[i].y - 1) / 2;
+            bool moveRight = (isRight + lane) % 2 == 0;
+
+            // Update frog position directly
+            return (moveRight ? 1 : -1);
+        }
+    }
+    return 0;
+}
+
 msg handleObject(msg msgs[NTASKS + 1], int pipefd_grenade[], int pipefd_projectiles[], bool *grenade_active, int *croc_projectiles_active, bool isRight)
 {
     switch (msgs[NTASKS].id) {
@@ -332,12 +348,9 @@ msg handleObject(msg msgs[NTASKS + 1], int pipefd_grenade[], int pipefd_projecti
                 // Only proceed if this croc exists and is shooting
                 if (!(IS_CROC_SHOOTING))
                     continue;
-                *croc_projectiles_active = sendProjectileShot(pipefd_projectiles,
-                                                              msgs[NTASKS].objs[i],
-                                                              *croc_projectiles_active);
+                *croc_projectiles_active = sendProjectileShot(pipefd_projectiles, msgs[NTASKS].objs[i], *croc_projectiles_active);
             }
-            msgs[Id_frog].objs[0].x += slideWithCroc(msgs[Id_frog].objs[0],
-                                                     msgs[msgs[NTASKS].id].objs, isRight);
+            msgs[Id_frog].objs[0].x += isOnCrocodile(msgs[Id_frog].objs[0], msgs[msgs[NTASKS].id].objs, isRight);
             return handleCroc(msgs[NTASKS].objs, msgs[msgs[NTASKS].id]);
         case Id_croc_projectile:
             *croc_projectiles_active = updateProjectileCount(msgs[NTASKS].objs);
@@ -351,13 +364,18 @@ msg handleObject(msg msgs[NTASKS + 1], int pipefd_grenade[], int pipefd_projecti
 
 gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDENS])
 {
-    WINDOW *p_win;
+    WINDOW *p_win = newwin(PSIZE/3, PSIZE, PWIN_START_Y, PWIN_START_X);
     gstate flag = Game;
     int pipefd[2];
     int pipefd_grenade[2];
     int pipefd_projectiles[2];
     pid_t pids[NTASKS];
+
     rvr r = generateRiver();
+    msg msgs[NTASKS + 1];
+    initObjects(msgs);
+    bool grenade_active = false;  // Add this flag
+    int croc_projectiles_active = 0;
 
     if (pipe(pipefd) == -1 ||
         pipe(pipefd_projectiles) == -1 ||
@@ -365,9 +383,6 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
         perror("Pipe call");
         exit(1);
     }
-
-    p_win = newwin(PSIZE/3, PSIZE, PWIN_START_Y, PWIN_START_X);
-    box(p_win, ACS_VLINE, ACS_HLINE);
 
     for (int i = 0; i < NTASKS; i++) {
         pids[i] = fork();
@@ -378,18 +393,13 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
             child_task(i, g_win, pipefd, pipefd_projectiles, pipefd_grenade, r);
     }
 
-    msg msgs[NTASKS + 1];
-    initObjects(msgs);
-    bool grenade_active = false;  // Add this flag
-    int croc_projectiles_active = 0;
+    wclear(*g_win);
+    wclear(*ui_win);
     close(pipefd[1]);
     close(pipefd_projectiles[0]);
     close(pipefd_grenade[0]);
 
     while (flag == Game) {
-        wclear(*g_win);
-        wclear(*ui_win);
-
         printUi(ui_win, msgs[Id_timer], lives, score);
         init_bckg(g_win);
         printDens(g_win, dens);
@@ -397,11 +407,8 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
         printFrog(g_win, msgs[Id_frog].objs[0]);
         printCrocProjectile(g_win, msgs[Id_croc_projectile]);
         printGranade(g_win, msgs[Id_granade].objs);
-        wattron(*ui_win, COLOR_PAIR(Ui));
         wattron(*g_win, COLOR_PAIR(Ui));
         box(*g_win, ACS_VLINE, ACS_HLINE);
-        box(*ui_win, ACS_VLINE, ACS_HLINE);
-        wattroff(*ui_win, COLOR_PAIR(Ui));
         wattroff(*g_win, COLOR_PAIR(Ui));
 
         wrefresh(*g_win);
@@ -417,21 +424,18 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
             for (int i = 0; i < NTASKS; i++)
                 kill(pids[i], SIGSTOP);
             flushinp();
-            pauseMenu(&p_win);
+            PauseMenu(&p_win);
             for (int i = 0; i < NTASKS; i++)
                 kill(pids[i], SIGCONT);
         } else if (msgs[NTASKS].id == Id_quit) {
-            flag = Menu;
+            flag = EndL;
         }
 
-        msgs[msgs[NTASKS].id] = handleObject(msgs, pipefd_grenade, pipefd_projectiles,
-                                             &grenade_active, &croc_projectiles_active,
-                                             r.isRight);
+        msgs[msgs[NTASKS].id] = handleObject(msgs, pipefd_grenade, pipefd_projectiles, &grenade_active, &croc_projectiles_active, r.isRight);
     }
 
     wclear(*g_win);
     wclear(*ui_win);
-    wrefresh(*g_win);
     wrefresh(*ui_win);
 
     close(pipefd[0]);
