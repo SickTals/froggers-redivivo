@@ -6,15 +6,16 @@
 void printMenuUi(WINDOW **win)
 {
     char sprite[LENGHT_STITLE][WIDTH_STITLE] = {SPRITE_STITLE};
+    bool flag = COIN_FLIP;
 
-    wclear(*win);
+    wattron(*win, COLOR_PAIR(Ui));
+    box(*win, ACS_VLINE, ACS_HLINE);
     for(int j = 1; j < UISIZE - 1; j++)
         for (int i = 1; i < GSIZE/2 - 1; i++)
             mvwaddch(*win, i, j, ' ');
+    wattroff(*win, COLOR_PAIR(Ui));
 
-    bool flag = COIN_FLIP;
     wattron(*win, COLOR_PAIR(Evil_Ui));
-    box(*win, ACS_VLINE, ACS_HLINE);
     for(int i = 0, j = 0; i < LENGHT_STITLE; i++) {
         if (j == WIDTH_STITLE) {
             j = 1;
