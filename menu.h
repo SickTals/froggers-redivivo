@@ -23,8 +23,12 @@
      (msg) == Msg_quit ? "QUIT"    : \
      (msg) == Msg_difficulty ? "MODE" : \
      (msg) == Msg_sprite     ? "SPRITE" : \
-     (msg) == Msg_back       ? "BACK"       : "Unknown")
+     (msg) == Msg_back       ? "BACK"       : \
+     (msg) == Pair_one              ? " >M< " : \
+     (msg) == Pair_two              ? "  >M<  " : \
+     (msg) == Pair_three            ? " >M< " : "Unknown")
 #define IS_OPTIONS(c) (c >= Msg_difficulty && c <= Msg_back)
+#define IS_SPRITE_OPTIONS(c) (c >= Pair_one && c<= Pair_three)
 
 gstate menu(WINDOW **g_win, WINDOW **ui_win, int cursor, gstate flag);
 void printMenu(WINDOW **win, int cursor);
@@ -33,6 +37,7 @@ gstate handleSelection(int cursor);
 gstate optionsMenu(WINDOW **g_win, WINDOW **ui_win);
 void pauseMenu(WINDOW **win);
 void printPauseMenu(WINDOW **win, const char *sprite[]);
+gstate colorChangeFrog(int pair);
 
 enum MenuMsg {
     Msg_play,
@@ -42,7 +47,11 @@ enum MenuMsg {
     Msg_difficulty,
     Msg_sprite,
     Msg_back,
-    Color_options
+    Color_options,
+    Pair_one,
+    Pair_two,
+    Pair_three,
+    Sprite_options
 };
 
 #endif

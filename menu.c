@@ -47,6 +47,7 @@ void menuPrintSelector(WINDOW **win, int sel){
     switch(sel){
         case Msg_play:
         case Msg_difficulty:
+        case Pair_one:
             mvwaddch(*win, GSIZE/4, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2 - 2,
                      SPRITE_CURSOR);
             mvwprintw(*win, GSIZE/4 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
@@ -54,6 +55,7 @@ void menuPrintSelector(WINDOW **win, int sel){
             return;
         case Msg_opts:
         case Msg_sprite:
+        case Pair_two:
             mvwaddch(*win, (GSIZE/4 - MENU_START_Y) + (STATIC_SPACE * 3)/2,
                      GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2 - 2,
                      SPRITE_CURSOR);
@@ -63,6 +65,7 @@ void menuPrintSelector(WINDOW **win, int sel){
             return;
         case Msg_quit:
         case Msg_back:
+        case Pair_three:
             mvwaddch(*win, (GSIZE/4 - MENU_START_Y) + STATIC_SPACE * 2,
                      GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2 - 2,
                      SPRITE_CURSOR);
@@ -92,6 +95,17 @@ void menuPrintSelector(WINDOW **win, int sel){
                       GSIZE/2 - strlen(MSG_TO_STRING(Msg_back))/2,
                       MSG_TO_STRING(Msg_back));
             return;
+        case Sprite_options:
+            mvwprintw(*win, GSIZE/4,
+                      GSIZE/2 - strlen(MSG_TO_STRING(Pair_one))/2,
+                      MSG_TO_STRING(Pair_one));
+            mvwprintw(*win, (GSIZE/4 - MENU_START_Y) + (STATIC_SPACE * 3)/2,
+                      GSIZE/2 - strlen(MSG_TO_STRING(Pair_two))/2,
+                      MSG_TO_STRING(Pair_two));
+            mvwprintw(*win, (GSIZE/4 - MENU_START_Y) + STATIC_SPACE * 2,
+                      GSIZE/2 - strlen(MSG_TO_STRING(Pair_three))/2,
+                      MSG_TO_STRING(Pair_three));
+            return;
     }
 }
 
@@ -101,6 +115,9 @@ void printMenu(WINDOW **win, int cursor)
     wattron(*win, COLOR_PAIR(Ui));
     if (IS_OPTIONS(cursor)) {
         menuPrintSelector(win, Color_options);
+    }
+    else if(IS_SPRITE_OPTIONS(cursor)){
+        menuPrintSelector(win, Sprite_options);
     }
     else {
         menuPrintSelector(win, Color_menu);
@@ -125,16 +142,24 @@ gstate handleSelection(int cursor)
         case Msg_difficulty:
             //return difficulty();
         case Msg_sprite:
-            //return changeFrogColor()
+            return SprOpt;
         case Msg_back:
             return Menu;
+        case Pair_one:
+            return colorChangeFrog(1);
+        case Pair_two:
+            return colorChangeFrog(2);
+        case Pair_three:
+            return colorChangeFrog(3);
         default:
             return Exit;
     }
 }
 
+
 gstate handleMenu(WINDOW **win, int *cursor)
 {
+    bool isSprOpt = IS_SPRITE_OPTIONS(*cursor);
     bool isOptions = IS_OPTIONS(*cursor);
     char user_input = wgetch(*win);
 
@@ -160,7 +185,14 @@ gstate handleMenu(WINDOW **win, int *cursor)
             *cursor = Msg_difficulty;
 
         return Options;
-    } else {
+    } else if(isSprOpt){
+        if (*cursor < Pair_one)
+            *cursor = Pair_three;
+        if (*cursor > Pair_three)
+            *cursor = Pair_one;
+
+        return SprOpt;
+    }else {
         if (*cursor < Msg_play)
             *cursor = Msg_quit;
         if (*cursor > Msg_quit)
@@ -191,6 +223,25 @@ void pauseMenu(WINDOW **win)
     }
 }
 
+gstate colorChangeFrog(int pair){
+    if (pair == 1){
+    }else if (pair == 2){
+        init_pair(Frog, COLOR_BROWN, COLOR_WHITE);
+    }
+    switch (pair) {
+        case 1:
+            init_pair(Frog, COLOR_BROWN, COLOR_WHITE);
+            break;
+        case 2:
+            init_pair(Frog, COLOR_MAGENTA, COLOR_GREEN);
+            break;
+        case 3:
+            init_pair(Frog, COLOR_YELLOW, COLOR_BROWN);
+            break;
+    }
+
+    return Options;
+}
 void printPauseMenu(WINDOW **win, const char *sprite[])
 {
     wattron(*win, COLOR_PAIR(Ui));

@@ -71,12 +71,12 @@ msg handleFrog(obj incoming, obj frog)
 void printFrog(WINDOW **win, obj frog)
 {
     char sprite_frog[SIZE_PIXEL][WIDTH_FROG] = {SPRITE_FROG};
-    wattron(*win, COLOR_PAIR(Grass_Frog));
+    wattron(*win, COLOR_PAIR(Frog));
     for(int i = 0; i <= SIZE_PIXEL; i++){
         mvwaddch(*win, frog.y - 1, frog.x + i, sprite_frog[0][i]);
         mvwaddch(*win, frog.y, frog.x + i, sprite_frog[1][i]);
     }
-    wattroff(*win, COLOR_PAIR(Grass_Frog));
+    wattroff(*win, COLOR_PAIR(Frog));
 
 }
 

@@ -108,7 +108,8 @@ enum Keys {
 };
 
 enum Colors_sprite{
-    Grass_Frog = 1,
+    Grass = 1,
+    Frog,
     Crocs,
     River,
     Dens,
@@ -129,7 +130,8 @@ typedef enum GameStatus {
     Pmenu,
     EndW,
     EndL,
-    Options
+    Options,
+    SprOpt
 } gstate;
 
 typedef enum {

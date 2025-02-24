@@ -52,6 +52,9 @@ int main()
             case Options:
                 flag = menu(&g_win, &ui_win, Msg_difficulty, Options);
                 break;
+            case SprOpt:
+                flag = menu(&g_win, &ui_win, Pair_one, SprOpt);
+                break;
             default:
                 flag = Exit;
                 break;
@@ -108,7 +111,8 @@ void init_screen(WINDOW **g_win, WINDOW **ui_win)
     wrefresh(*g_win);
     wrefresh(*ui_win);
     init_color(COLOR_BROWN, 150, 75, 0);
-    init_pair(Grass_Frog, COLOR_WHITE, COLOR_GREEN);
+    init_pair(Grass, COLOR_WHITE, COLOR_GREEN);
+    init_pair(Frog, COLOR_WHITE, COLOR_GREEN);
     init_pair(River, COLOR_WHITE, COLOR_CYAN);
     init_pair(Crocs, COLOR_BLACK, COLOR_BLUE);
     init_pair(Dens, COLOR_MAGENTA, COLOR_WHITE);
@@ -220,7 +224,7 @@ gstate hasWon(bool dens[NDENS])
 
 void init_bckg(WINDOW **win)
 {
-    wattron(*win, COLOR_PAIR(Grass_Frog));
+    wattron(*win, COLOR_PAIR(Grass));
     for(int i = 1; i < GSIZE - 1; i++) {
         mvwaddch(*win, SIDEWALK_Y - 1, i, ' ');
         mvwaddch(*win, SIDEWALK_Y, i, ' ');
@@ -229,7 +233,7 @@ void init_bckg(WINDOW **win)
     for(int j = 1; j <= NLANES; j++)
         for(int i = 1; i < GSIZE - 1; i++)
             mvwaddch(*win, j, i, ' ');
-    wattroff(*win, COLOR_PAIR(Grass_Frog));
+    wattroff(*win, COLOR_PAIR(Grass));
 
     wattron(*win, COLOR_PAIR(River));
     for(int j = NLANES + 1; j < SIDEWALK_Y - 1; j++)
