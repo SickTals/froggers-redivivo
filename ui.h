@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include "common.h"
 
-#define TIME 60
 #define SIZE_FSCORE 16
 #define START_X 2
 #define TIMER_Y 3

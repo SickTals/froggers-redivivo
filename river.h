@@ -18,7 +18,6 @@
 #define MOVE_STEP 1
 #define INVALID_CROC -10
 #define SPAWN_CHANCE 10
-#define SHOOT_CHANCE !(rand() % 25)
 
 #define IS_VALID_LANE(lane) lane >= 0 && lane < NLANES
 #define IS_ON_SCREEN(x) x >= 0 && x < GSIZE

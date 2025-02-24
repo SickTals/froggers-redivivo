@@ -7,7 +7,7 @@ void frog(WINDOW **win, int pipefd[]){
     char user_input;
     msg frog_msg;
     obj frog;
-    while(true){ // Ciclo infinito chiuso dal padre
+    while(true){
         frog_msg.id = Id_frog;
         frog.y = 0;
         frog.x = 0;
@@ -38,7 +38,6 @@ void frog(WINDOW **win, int pipefd[]){
                 break;
         }
         frog_msg.objs[0] = frog;
-        // Scrittura su pipe della posizione dell'oggetto
         (void)write(pipefd[1], &frog_msg, sizeof(frog_msg));
     }
 }
@@ -110,11 +109,11 @@ void granade(int pipefd[], int pipefd_grenade[]) {
             {
                 .y = grenade_msg.objs[0].y,
                 .x = grenade_msg.objs[0].x - 1
-            },  // left
+            },
             {
                 .y = grenade_msg.objs[0].y,
                 .x = grenade_msg.objs[0].x + WIDTH_FROG
-            }  // right
+            }
         };
         grenade_msg.id = Id_granade;
 

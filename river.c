@@ -6,6 +6,11 @@ rvr generateRiver()
 {
     rvr r;
     r.isRight = COIN_FLIP;
+    if (DIFFICULTY == 3) {
+        for (int i = 0; i < NLANES; i++)
+            r.speeds[i] = Fast;
+        return r;
+    }
     for (int i = 0; i < NLANES; i++)
         r.speeds[i] = RAND_SPEEDS;
     return r;
@@ -40,7 +45,6 @@ msg initCrocodiles(enum Speeds speed)
     msg croc = {
         .id = (msgid)speed
     };
-    // Initialize all positions as invalid
     for (int i = 0; i < CROC_CAP; i++)
         croc.objs [i] = invalidateObject();
 
@@ -49,7 +53,7 @@ msg initCrocodiles(enum Speeds speed)
 
 obj updateCrocodilePosition(obj croc, bool moveRight)
 {
-    croc.shoots = SHOOT_CHANCE;
+    croc.shoots = (rand() % SHOOT_CHANCE) == false;
 
     if (moveRight) {
         croc.x += MOVE_STEP;
@@ -122,16 +126,13 @@ void river(rvr r, enum Speeds speed, int pipefd[])
     while (true) {
         active_crocs = 0;
         
-        // Update existing crocodiles
         for (int i = 0; i < CROC_CAP; i++)
             croc.objs[i] = updateCrocodile(croc.objs[i], r.isRight, &active_crocs);
         
-        // Compact array
         int validIdx = 0;
         for (int i = 0; i < CROC_CAP; i++)
             croc.objs[i] = compactCrocs(croc.objs, i, &validIdx);
 
-        // Spawn new crocodiles
         for (int lane = 0; lane < NLANES; lane++) {
             if (r.speeds[lane] != speed)
                 continue;
@@ -145,7 +146,6 @@ void river(rvr r, enum Speeds speed, int pipefd[])
         
         write(pipefd[1], &croc, sizeof(croc));
         
-        // Sleep based on speed
         switch (speed) {
             case Slow: 
                 usleep(UDELAY * 2);
@@ -161,11 +161,9 @@ void river(rvr r, enum Speeds speed, int pipefd[])
 }
 
 msg handleCroc(obj p[], msg c) {
-    // Clear all positions
     for (int i = 0; i < CROC_CAP; i++)
         c.objs[i] = invalidateObject();
 
-    // Copy valid positions
     int validIdx = 0;
     for (int i = 0; i < CROC_CAP; i++) {
         if (p[i].x == INVALID_CROC || p[i].y == INVALID_CROC)
@@ -231,11 +229,9 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
         .id = Id_croc_projectile
     };
     
-    // Initialize all projectiles as invalid
     for (int i = 0; i < CROC_CAP - 1; i++)
         projectiles.objs[i] = invalidateObject();
 
-    // Set non-blocking read
     int flags = fcntl(pipefd_projectiles[0], F_GETFL, 0);
     fcntl(pipefd_projectiles[0], F_SETFL, flags | O_NONBLOCK);
     
@@ -245,12 +241,10 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
         msg tmp = { .objs[CROC_CAP - 1].x = 0 };
         ssize_t n = read(pipefd_projectiles[0], &tmp, sizeof(msg));
         if (n == sizeof(msg)) {
-            // tentativo di eliminare i proiettili colpiti
             if (tmp.objs[CROC_CAP - 1].x == INVALID_CROC) {
                 projectiles.objs[tmp.objs[CROC_CAP - 1].y] = invalidateObject();
             }
 
-            // Handle new shooting crocodiles
             if (tmp.objs[CROC_CAP - 1].shoots) {
                 for (int i = 0; i < CROC_CAP; i++) {
                     if (!tmp.objs[i].shoots || tmp.objs[i].x == INVALID_CROC)
@@ -277,12 +271,9 @@ void projectile(int pipefd[], int pipefd_projectiles[], bool isRight) {
                     }
                 }
             }
-        } else if (n == -1 && errno != EAGAIN) {
+        } else if (n == -1 && errno != EAGAIN)
             perror("read");
-            // Handle error as needed
-        }
  
-        // Update existing projectiles
         bool has_active = false;
         for (int i = 0; i < CROC_CAP; i++) {
             if (projectiles.objs[i].x == INVALID_CROC)
@@ -317,7 +308,6 @@ void printCrocProjectile(WINDOW **g_win, msg p)
     for (int i = 0; i < CROC_CAP; i++) {
         if (p.objs[i].x == INVALID_CROC || p.objs[i].y == INVALID_CROC)
             continue;
-        // Print projectile at the same level as crocodiles but with distinct character
         mvwaddch(*g_win, p.objs[i].y - 1, p.objs[i].x, sprite_proj[0]);
         mvwaddch(*g_win, p.objs[i].y, p.objs[i].x, sprite_proj[1]);
     }

@@ -4,16 +4,15 @@ bool den(bool dens[NDENS], obj frog)
 {
     for (int i = 0; i < NDENS; i++) {
         int start_x = DEN_START_X(i) - 2;
-        // Check vertical alignment (rows 1-3)
+        // Se ha superato il fiume (lanes 1-3)
         if (frog.y < 1 || frog.y > 4)
             continue;
 
-        // Check if any part of the frog's sprite (3 characters wide) overlaps the den
         if (frog.x > start_x &&
             frog.x < start_x + DEN_WIDTH &&
             !dens[i]) {
             dens[i] = true;
-            return true; // Exit after first valid collision
+            return true;
         }
     }
     return false;

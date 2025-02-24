@@ -4,6 +4,10 @@
 #include "menu.h"
 #include "river.h"
 
+int DIFFICULTY = 2; // Default: normale
+int TIME = 99;
+int SHOOT_CHANCE = 25;
+
 int main() 
 {
     gstate flag = Menu;
@@ -54,6 +58,9 @@ int main()
                 break;
             case SprOpt:
                 flag = menu(&g_win, &ui_win, Pair_one, SprOpt);
+                break;
+            case DiffOpt:
+                flag = menu(&g_win, &ui_win, Diff_easy, DiffOpt);
                 break;
             default:
                 flag = Exit;
@@ -295,7 +302,6 @@ bool sendGrenadeShot(int pipefd[], msg f)
 
 int sendProjectileShot(int pipefd[], obj c, int n)
 {
-    // Create a new message specifically for the projectile
     msg projectile_msg = {
                         .id = Id_croc_projectile,
                         .objs[CROC_CAP - 1] = c ,
@@ -329,9 +335,7 @@ msg handleObject(msg msgs[NTASKS + 1], int pipefd_grenade[], int pipefd_projecti
         case Id_croc_slow:
         case Id_croc_normal:
         case Id_croc_fast:
-            // Check shooting crocodiles
             for (int i = 0; i < CROC_CAP; i++) {
-                // Only proceed if this croc exists and is shooting
                 if (!(IS_CROC_SHOOTING))
                     continue;
                 *croc_projectiles_active = sendProjectileShot(pipefd_projectiles,
@@ -440,7 +444,7 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
     int status;
     pid_t pid;
     do {
-        pid = waitpid(-1, &status, WNOHANG); // Non-blocking wait
+        pid = waitpid(-1, &status, WNOHANG);
     } while (pid > 0 || (pid == -1 && errno == EINTR));
 
     delwin(p_win);

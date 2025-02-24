@@ -132,6 +132,7 @@ typedef enum GameStatus {
     EndW,
     EndL,
     Options,
+    DiffOpt,
     SprOpt
 } gstate;
 
@@ -168,5 +169,9 @@ typedef struct Message {
     msgid id; 
     obj objs[CROC_CAP];
 } msg;
+
+extern int DIFFICULTY;
+extern int TIME;
+extern int SHOOT_CHANCE;
 
 #endif
