@@ -10,6 +10,7 @@
 #include <curses.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <pthread.h>
 #include "common.h"
 #include "menu.h"
 #include "ui.h"
@@ -32,7 +33,13 @@
                         *croc_projectiles_active < CROC_CAP
 
 #define NLIVES 3
-#define NTASKS 7
+#define DIM_BUFFER 64
+
+typedef struct SharedData{
+    msg msgs[NTASKS + 1]; // Stores messages for all tasks
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+} SharedData;
 
 void init_screen(WINDOW **g_win, WINDOW **ui_win);
 void end_screen(WINDOW **win, bool dens[], int h, const char *sprite[], int alt_color);

@@ -4,9 +4,50 @@
 #include "menu.h"
 #include "river.h"
 
+
 int DIFFICULTY = 2; // Default: normale
 int TIME = 99;
 int SHOOT_CHANCE = 25;
+SharedData shared_data;
+static msg buffer[DIM_BUFFER];
+static int buffer_counter = 0;
+static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t buffer_not_full = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t buffer_not_empty = PTHREAD_COND_INITIALIZER;
+
+// Thread-safe write
+void write_message(msg m) {
+    pthread_mutex_lock(&lock);
+    // Wait until buffer has space
+    while (buffer_counter == DIM_BUFFER) {
+        pthread_cond_wait(&buffer_not_full, &lock);
+    }
+    // Add message to buffer (FIFO)
+    buffer[buffer_counter++] = m;
+    // Signal that buffer is no longer empty
+    pthread_cond_signal(&buffer_not_empty);
+    pthread_mutex_unlock(&lock);
+}
+
+// Thread-safe read
+msg read_message() {
+    pthread_mutex_lock(&lock);
+    // Wait until buffer has data
+    while (buffer_counter == 0) {
+        pthread_cond_wait(&buffer_not_empty, &lock);
+    }
+    // Read message (FIFO)
+    msg m = buffer[0];
+    // Shift remaining messages forward
+    for (int i = 1; i < buffer_counter; i++) {
+        buffer[i - 1] = buffer[i];
+    }
+    buffer_counter--;
+    // Signal that buffer is no longer full
+    pthread_cond_signal(&buffer_not_full);
+    pthread_mutex_unlock(&lock);
+    return m;
+}
 
 int main() 
 {
@@ -142,37 +183,30 @@ void initObjects(msg msgs[])
             msgs[i].objs[j] = invalidateObject();
 }
 
-void child_task(int i, WINDOW **g_win, int pipefd[], int pipefd_projectiles[], int pipefd_grenade[], rvr r)
-{
-    close(pipefd_projectiles[1]);
-    close(pipefd_grenade[1]);
-    switch (i) {
+void* thread_task(void* arg){
+    int task_id = (intptr_t)arg; // Cast task ID from void*
+    switch (task_id) {
         case Id_frog:
-            close(pipefd_grenade[0]);
-            close(pipefd_projectiles[0]);
-            frog(g_win, pipefd);
+            frog(g_win); // Remove pipefd dependency
             break;
         case Id_granade:
-            close(pipefd_projectiles[0]);
-            granade(pipefd, pipefd_grenade);
+            granade(); // Remove pipefd dependency
             break;
         case Id_croc_slow:
         case Id_croc_normal:
         case Id_croc_fast:
-            close(pipefd_grenade[0]);
-            close(pipefd_projectiles[0]);
-            river(r, (enum Speeds)i, pipefd);
+            river(task_id, r); // Pass river data
             break;
         case Id_croc_projectile:
-            close(pipefd_grenade[0]);
-            projectile(pipefd, pipefd_projectiles, r.isRight);
+            projectile(r.isRight);
             break;
-       case Id_timer:
-            close(pipefd_grenade[0]);
-            close(pipefd_projectiles[0]);
-            timer(pipefd);
+        case Id_timer:
+            timer();
+            break;
+        default:
             break;
     }
+    return NULL;
 }
 
 
@@ -363,29 +397,15 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
     int pipefd[2];
     int pipefd_grenade[2];
     int pipefd_projectiles[2];
-    msg msgs[NTASKS + 1];
     rvr r = generateRiver();
     bool grenade_active = false;
     int croc_projectiles_active = 0;
 
-    if (pipe(pipefd) == -1 ||
-        pipe(pipefd_projectiles) == -1 ||
-        pipe(pipefd_grenade) == -1) {
-        perror("Pipe call");
-        exit(1);
-    }
-
-
+    pthread_t threads[NTASKS];
     for (int i = 0; i < NTASKS; i++) {
-        pids[i] = fork();
-        if (pids[i] < 0) {
-            perror("Fork fail");
-            exit(EXIT_FAILURE);
-        } else if (pids[i] == 0)
-            child_task(i, g_win, pipefd, pipefd_projectiles, pipefd_grenade, r);
+        pthread_create(&threads[i], NULL, thread_task, (void*)(intptr_t)i);
     }
-
-    initObjects(msgs);
+    initObjects(shared_data.msgs);
     close(pipefd[1]);
     close(pipefd_projectiles[0]);
     close(pipefd_grenade[0]);
@@ -393,13 +413,13 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
     wclear(*ui_win);
 
     while (flag == Game) {
-        printUi(ui_win, msgs[Id_timer], lives, score);
+        printUi(ui_win, shared_data.msgs[Id_timer], lives, score);
         init_bckg(g_win);
         printDens(g_win, dens);
-        printCrocs(g_win, &msgs[Id_croc_slow], NSPEEDS, r.isRight);
-        printFrog(g_win, msgs[Id_frog].objs[0]);
-        printCrocProjectile(g_win, msgs[Id_croc_projectile]);
-        printGranade(g_win, msgs[Id_granade].objs);
+        printCrocs(g_win, &shared_data.msgs[Id_croc_slow], NSPEEDS, r.isRight);
+        printFrog(g_win, shared_data.msgs[Id_frog].objs[0]);
+        printCrocProjectile(g_win, shared_data.msgs[Id_croc_projectile]);
+        printGranade(g_win, shared_data.msgs[Id_granade].objs);
         wattron(*ui_win, COLOR_PAIR(Ui));
         wattron(*g_win, COLOR_PAIR(Ui));
         box(*g_win, ACS_VLINE, ACS_HLINE);
@@ -410,24 +430,27 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
         wrefresh(*g_win);
         wrefresh(*ui_win);
 
-        flag = collisions(msgs, dens, r.isRight, pipefd_projectiles, pipefd_grenade, croc_projectiles_active);
-        
-        (void)read(pipefd[0], &msgs[NTASKS], sizeof(msgs[NTASKS]));
+        flag = collisions(shared_data.msgs, dens, r.isRight, pipefd_projectiles, pipefd_grenade, croc_projectiles_active);
+
+        msg incoming = read_message();
+        pthread_mutex_lock(&shared_data.mutex);
+        shared_data.messages[incoming.id] = incoming;
+        pthread_mutex_unlock(&shared_data.mutex);
 
         if (lives <= 0) {
             flag = EndL;
-        } else if (msgs[NTASKS].id == Id_pause) {
+        } else if (shared_data.msgs[NTASKS].id == Id_pause) {
             for (int i = 0; i < NTASKS; i++)
                 kill(pids[i], SIGSTOP);
             flushinp();
             pauseMenu(&p_win);
             for (int i = 0; i < NTASKS; i++)
                 kill(pids[i], SIGCONT);
-        } else if (msgs[NTASKS].id == Id_quit) {
+        } else if (shared_data.msgs[NTASKS].id == Id_quit) {
             flag = Menu;
         }
 
-        msgs[msgs[NTASKS].id] = handleObject(msgs, pipefd_grenade, pipefd_projectiles,
+        shared_data.msgs[shared_data.msgs[NTASKS].id] = handleObject(shared_data.msgs, pipefd_grenade, pipefd_projectiles,
                                              &grenade_active, &croc_projectiles_active,
                                              r.isRight);
     }
@@ -437,15 +460,12 @@ gstate game(WINDOW **g_win, WINDOW **ui_win, int lives, int score, bool dens[NDE
     wrefresh(*g_win);
     wrefresh(*ui_win);
 
-    close(pipefd[0]);
-    for (int i = 0; i < NTASKS; i++)
-        kill(pids[i], SIGKILL);
-
-    int status;
-    pid_t pid;
-    do {
-        pid = waitpid(-1, &status, WNOHANG);
-    } while (pid > 0 || (pid == -1 && errno == EINTR));
+    for (int i = 0; i < NTASKS; i++) {
+        pthread_cancel(threads[i]); // Gracefully terminate
+        pthread_join(threads[i], NULL);
+    }
+    pthread_mutex_destroy(&shared_data.mutex);
+    pthread_cond_destroy(&shared_data.cond);
 
     delwin(p_win);
     return flag;

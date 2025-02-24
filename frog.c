@@ -38,7 +38,7 @@ void frog(WINDOW **win, int pipefd[]){
                 break;
         }
         frog_msg.objs[0] = frog;
-        (void)write(pipefd[1], &frog_msg, sizeof(frog_msg));
+        write_message(frog_msg);
     }
 }
 
