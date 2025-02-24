@@ -31,7 +31,7 @@ int main()
                 score = 0;
                 for (int i = 0; i < NDENS; i++)
                     dens[i] = false;
-                flag = menu(&g_win, &ui_win);
+                flag = menu(&g_win, &ui_win, Msg_play, Menu);
                 break;
             case Exit:
                 flag = Exit;
@@ -50,7 +50,8 @@ int main()
                 flag = Menu;
                 break;
             case Options:
-                //flag = optionsMenu(&g_win, &ui_win);
+                flag = menu(&g_win, &ui_win, Msg_difficulty, Options);
+                break;
             default:
                 flag = Exit;
                 break;
@@ -95,7 +96,7 @@ void init_screen(WINDOW **g_win, WINDOW **ui_win)
     noecho();
     curs_set(false);
     cbreak();
-    //start_color();
+    start_color();
     *g_win = newwin(GSIZE/2, GSIZE,
                     (LINES - GSIZE/2)/2, ((COLS - GSIZE)/2) - UISIZE/2);
     *ui_win = newwin(GSIZE/2, UISIZE,

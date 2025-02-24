@@ -31,47 +31,46 @@ void initMenu(WINDOW **win, const char *sprite[])
  *  false - Esce dal gioco
  *  true - Avvia gioco
  */
-gstate menu(WINDOW **g_win, WINDOW **ui_win)
+gstate menu(WINDOW **g_win, WINDOW **ui_win, int cursor, gstate flag)
 {
-    int cursor = 0;
-    gstate flag = Menu;
-
-    while(flag == Menu) {
-        wattron(*ui_win, COLOR_PAIR(Ui));
+    gstate state = flag;
+    while(state == flag) {
         printMenuUi(ui_win);
         initMenu(g_win, (const char*[]){SPRITE_MTITLE});
         printMenu(g_win, cursor);
-        wattroff(*ui_win, COLOR_PAIR(Ui));
-        flag = handleMenu(g_win, &cursor);
+        state = handleMenu(g_win, &cursor);
     }
-    return flag;
+    return state;
 }
 
 void menuPrintSelector(WINDOW **win, int sel){
     switch(sel){
         case Msg_play:
+        case Msg_difficulty:
             mvwaddch(*win, GSIZE/4, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2 - 2,
                      SPRITE_CURSOR);
             mvwprintw(*win, GSIZE/4 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
-                      MSG_TO_STRING(Msg_play));
+                      MSG_TO_STRING(sel));
             return;
         case Msg_opts:
+        case Msg_sprite:
             mvwaddch(*win, (GSIZE/4 - MENU_START_Y) + (STATIC_SPACE * 3)/2,
                      GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2 - 2,
                      SPRITE_CURSOR);
             mvwprintw(*win, (GSIZE/4 - MENU_START_Y) + (STATIC_SPACE * 3)/2,
                       GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2,
-                      MSG_TO_STRING(Msg_opts));
+                      MSG_TO_STRING(sel));
             return;
         case Msg_quit:
+        case Msg_back:
             mvwaddch(*win, (GSIZE/4 - MENU_START_Y) + STATIC_SPACE * 2,
                      GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2 - 2,
                      SPRITE_CURSOR);
             mvwprintw(*win, (GSIZE/4 - MENU_START_Y) + STATIC_SPACE * 2,
                       GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2,
-                      MSG_TO_STRING(Msg_quit));
+                      MSG_TO_STRING(sel));
             return;
-        default:
+        case Color_menu:
             mvwprintw(*win, GSIZE/4,
                       GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
                       MSG_TO_STRING(Msg_play));
@@ -82,13 +81,30 @@ void menuPrintSelector(WINDOW **win, int sel){
                       GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2,
                       MSG_TO_STRING(Msg_quit));
             return;
+        case Color_options:
+            mvwprintw(*win, GSIZE/4,
+                      GSIZE/2 - strlen(MSG_TO_STRING(Msg_difficulty))/2,
+                      MSG_TO_STRING(Msg_difficulty));
+            mvwprintw(*win, (GSIZE/4 - MENU_START_Y) + (STATIC_SPACE * 3)/2,
+                      GSIZE/2 - strlen(MSG_TO_STRING(Msg_sprite))/2,
+                      MSG_TO_STRING(Msg_sprite));
+            mvwprintw(*win, (GSIZE/4 - MENU_START_Y) + STATIC_SPACE * 2,
+                      GSIZE/2 - strlen(MSG_TO_STRING(Msg_back))/2,
+                      MSG_TO_STRING(Msg_back));
+            return;
     }
 }
 
 void printMenu(WINDOW **win, int cursor)
 {
+
     wattron(*win, COLOR_PAIR(Ui));
-    menuPrintSelector(win, -1);
+    if (IS_OPTIONS(cursor)) {
+        menuPrintSelector(win, Color_options);
+    }
+    else {
+        menuPrintSelector(win, Color_menu);
+    }
     wattron(*win, COLOR_PAIR(Ui));
 
     wattron(*win, COLOR_PAIR(Evil_Ui));
@@ -106,6 +122,12 @@ gstate handleSelection(int cursor)
             return Options;
         case Msg_quit:
             return Exit;
+        case Msg_difficulty:
+            //return difficulty();
+        case Msg_sprite:
+            //return changeFrogColor()
+        case Msg_back:
+            return Menu;
         default:
             return Exit;
     }
@@ -113,6 +135,7 @@ gstate handleSelection(int cursor)
 
 gstate handleMenu(WINDOW **win, int *cursor)
 {
+    bool isOptions = IS_OPTIONS(*cursor);
     char user_input = wgetch(*win);
 
     switch (user_input) {
@@ -130,16 +153,21 @@ gstate handleMenu(WINDOW **win, int *cursor)
             return handleSelection(*cursor);
     }
 
-    if (*cursor < Msg_play)
-        *cursor = Msg_quit;
-    if (*cursor > Msg_quit)
-        *cursor = Msg_play;
+    if(isOptions) {
+        if (*cursor < Msg_difficulty)
+            *cursor = Msg_back;
+        if (*cursor > Msg_back)
+            *cursor = Msg_difficulty;
 
-    return Menu;
-}
+        return Options;
+    } else {
+        if (*cursor < Msg_play)
+            *cursor = Msg_quit;
+        if (*cursor > Msg_quit)
+            *cursor = Msg_play;
 
-gstate optionsMenu(WINDOW **g_win, WINDOW **ui_win) {
-       
+        return Menu;
+    }
 }
 
 void pauseMenu(WINDOW **win)

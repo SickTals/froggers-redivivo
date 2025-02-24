@@ -136,7 +136,7 @@ void river(rvr r, enum Speeds speed, int pipefd[])
             if (r.speeds[lane] != speed)
                 continue;
             free_counter[lane]++;
-            if (!(SPAWN_TRY(free_counter[lane], active_crocs)))
+            if (!(SPAWN_TRY(free_counter[lane], active_crocs)) && active_crocs > 0)
                 continue;
             croc.objs[validIdx] = spawnCrocodile(croc.objs, lane, r.isRight, validIdx);
             active_crocs++;
