@@ -25,7 +25,7 @@
      (msg) == Msg_sprite     ? "SPRITE" : \
      (msg) == Msg_back       ? "BACK"       : \
      (msg) == Pair_one              ? " >M< " : \
-     (msg) == Pair_two              ? "  >M<  " : \
+     (msg) == Pair_two              ? " >M< " : \
      (msg) == Pair_three            ? " >M< " : "Unknown")
 #define IS_OPTIONS(c) (c >= Msg_difficulty && c <= Msg_back)
 #define IS_SPRITE_OPTIONS(c) (c >= Pair_one && c<= Pair_three)

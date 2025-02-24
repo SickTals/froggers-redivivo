@@ -118,7 +118,8 @@ enum Colors_sprite{
     Ui,
     Lives,
     Evil_Ui,
-    Alt_E_Ui
+    Alt_E_Ui,
+    Sprite_Ui
 };
 
 typedef enum GameStatus {

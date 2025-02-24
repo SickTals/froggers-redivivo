@@ -47,7 +47,6 @@ void menuPrintSelector(WINDOW **win, int sel){
     switch(sel){
         case Msg_play:
         case Msg_difficulty:
-        case Pair_one:
             mvwaddch(*win, GSIZE/4, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2 - 2,
                      SPRITE_CURSOR);
             mvwprintw(*win, GSIZE/4 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
@@ -55,7 +54,6 @@ void menuPrintSelector(WINDOW **win, int sel){
             return;
         case Msg_opts:
         case Msg_sprite:
-        case Pair_two:
             mvwaddch(*win, (GSIZE/4 - MENU_START_Y) + (STATIC_SPACE * 3)/2,
                      GSIZE/2 - strlen(MSG_TO_STRING(Msg_opts))/2 - 2,
                      SPRITE_CURSOR);
@@ -65,13 +63,39 @@ void menuPrintSelector(WINDOW **win, int sel){
             return;
         case Msg_quit:
         case Msg_back:
-        case Pair_three:
             mvwaddch(*win, (GSIZE/4 - MENU_START_Y) + STATIC_SPACE * 2,
                      GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2 - 2,
                      SPRITE_CURSOR);
             mvwprintw(*win, (GSIZE/4 - MENU_START_Y) + STATIC_SPACE * 2,
                       GSIZE/2 - strlen(MSG_TO_STRING(Msg_quit))/2,
                       MSG_TO_STRING(sel));
+            return;
+        case Pair_one:
+            init_pair(Sprite_Ui, COLOR_BROWN, COLOR_WHITE);
+            mvwaddch(*win, GSIZE/4, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2 - 2,
+                     SPRITE_CURSOR);
+            wattron(*win, COLOR_PAIR(Sprite_Ui));
+            mvwprintw(*win, GSIZE/4 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
+                      MSG_TO_STRING(sel));
+            wattroff(*win, COLOR_PAIR(Sprite_Ui));
+            return;
+        case Pair_two:
+            init_pair(Sprite_Ui, COLOR_BLACK, COLOR_MAGENTA);
+            mvwaddch(*win, (GSIZE/4 - MENU_START_Y) + (STATIC_SPACE * 3)/2, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2 - 2,
+                     SPRITE_CURSOR);
+            wattron(*win, COLOR_PAIR(Sprite_Ui));
+            mvwprintw(*win, (GSIZE/4 - MENU_START_Y) + (STATIC_SPACE * 3)/2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
+                      MSG_TO_STRING(sel));
+            wattroff(*win, COLOR_PAIR(Sprite_Ui));
+            return;
+        case Pair_three:
+            init_pair(Sprite_Ui, COLOR_BROWN, COLOR_YELLOW);
+            mvwaddch(*win, (GSIZE/4 - MENU_START_Y) + STATIC_SPACE * 2, GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2 - 2,
+                     SPRITE_CURSOR);
+            wattron(*win, COLOR_PAIR(Sprite_Ui));
+            mvwprintw(*win, (GSIZE/4 - MENU_START_Y) + STATIC_SPACE * 2 , GSIZE/2 - strlen(MSG_TO_STRING(Msg_play))/2,
+                      MSG_TO_STRING(sel));
+            wattroff(*win, COLOR_PAIR(Sprite_Ui));
             return;
         case Color_menu:
             mvwprintw(*win, GSIZE/4,
@@ -233,10 +257,10 @@ gstate colorChangeFrog(int pair){
             init_pair(Frog, COLOR_BROWN, COLOR_WHITE);
             break;
         case 2:
-            init_pair(Frog, COLOR_MAGENTA, COLOR_GREEN);
+            init_pair(Frog, COLOR_BLACK, COLOR_MAGENTA);
             break;
         case 3:
-            init_pair(Frog, COLOR_YELLOW, COLOR_BROWN);
+            init_pair(Frog, COLOR_BROWN, COLOR_YELLOW);
             break;
     }
 
